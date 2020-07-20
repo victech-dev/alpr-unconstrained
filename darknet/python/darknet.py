@@ -34,7 +34,10 @@ class DETECTION(Structure):
                 # for yolov4
                 ,("uc", POINTER(c_float))
                 ,("points", c_int)
-                ]
+                ,("embeddings", POINTER(c_float))
+                ,("embedding_size", c_int)
+                ,("sim", c_float)
+                ,("track_id", c_int)]
 
 
 class IMAGE(Structure):
@@ -138,10 +141,11 @@ def detect(net, meta, image, thresh=.5, hier_thresh=.5, nms=.45):
     t2 = time.time()
 
     dets = get_network_boxes(net, im.w, im.h, thresh, hier_thresh, None, 0, pnum)
+
     num = pnum[0]
 
     t3 = time.time()
-
+    
     if (nms):
         do_nms_obj(dets, num, meta.classes, nms)
 
@@ -162,7 +166,7 @@ def detect(net, meta, image, thresh=.5, hier_thresh=.5, nms=.45):
 
     t5 = time.time()
 
-    return res, wh, (t1 - t0, t2 - t1, t3 - t2, t4 - t3, t5 - t4)
+    return res, wh, (t0, t1, t2, t3, t4, t5)
     
 if __name__ == "__main__":
     #net = load_net("cfg/densenet201.cfg", "/home/pjreddie/trained/densenet201.weights", 0)
