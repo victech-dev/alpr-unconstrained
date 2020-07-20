@@ -1,6 +1,7 @@
 from ctypes import *
 import math
 import random
+import time
 
 def sample(probs):
     s = sum(probs)
@@ -29,7 +30,11 @@ class DETECTION(Structure):
                 ("prob", POINTER(c_float)),
                 ("mask", POINTER(c_float)),
                 ("objectness", c_float),
-                ("sort_class", c_int)]
+                ("sort_class", c_int)
+                # for yolov4
+                ,("uc", POINTER(c_float))
+                ,("points", c_int)
+                ]
 
 
 class IMAGE(Structure):
@@ -42,9 +47,6 @@ class METADATA(Structure):
     _fields_ = [("classes", c_int),
                 ("names", POINTER(c_char_p))]
 
-    
-
-#lib = CDLL("/home/pjreddie/documents/darknet/libdarknet.so", RTLD_GLOBAL)
 lib = CDLL("darknet/libdarknet.so", RTLD_GLOBAL)
 lib.network_width.argtypes = [c_void_p]
 lib.network_width.restype = c_int
@@ -123,13 +125,25 @@ def classify(net, meta, im):
     return res
 
 def detect(net, meta, image, thresh=.5, hier_thresh=.5, nms=.45):
+    t0 = time.time()
+
     im = load_image(image, 0, 0)
     num = c_int(0)
     pnum = pointer(num)
+
+    t1 = time.time()
+
     predict_image(net, im)
+
+    t2 = time.time()
+
     dets = get_network_boxes(net, im.w, im.h, thresh, hier_thresh, None, 0, pnum)
     num = pnum[0]
-    if (nms): do_nms_obj(dets, num, meta.classes, nms);
+
+    t3 = time.time()
+
+    if (nms):
+        do_nms_obj(dets, num, meta.classes, nms)
 
     res = []
     for j in range(num):
@@ -137,11 +151,18 @@ def detect(net, meta, image, thresh=.5, hier_thresh=.5, nms=.45):
             if dets[j].prob[i] > 0:
                 b = dets[j].bbox
                 res.append((meta.names[i], dets[j].prob[i], (b.x, b.y, b.w, b.h)))
+
+    t4 = time.time()
+
     res = sorted(res, key=lambda x: -x[1])
-    wh = (im.w,im.h)
+    wh = (im.w, im.h)
+
     free_image(im)
     free_detections(dets, num)
-    return res,wh
+
+    t5 = time.time()
+
+    return res, wh, (t1 - t0, t2 - t1, t3 - t2, t4 - t3, t5 - t4)
     
 if __name__ == "__main__":
     #net = load_net("cfg/densenet201.cfg", "/home/pjreddie/trained/densenet201.weights", 0)
@@ -152,6 +173,6 @@ if __name__ == "__main__":
     net = load_net("cfg/tiny-yolo.cfg", "tiny-yolo.weights", 0)
     meta = load_meta("cfg/coco.data")
     r = detect(net, meta, "data/dog.jpg")
-    print r
+    print(r)
     
 
