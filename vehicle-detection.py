@@ -33,7 +33,7 @@ def detect_lp(input_dir, output_dir):
     if not isdir(output_dir):
         makedirs(output_dir)
 
-    print("** Searching for vehicles using yolo(v4)...")
+    print("** Searching for license-plate using yolo(v4)...")
 
     for i, img_path in enumerate(imgs_paths):
         img_path = Path(img_path)
@@ -45,6 +45,7 @@ def detect_lp(input_dir, output_dir):
             thresh=vehicle_threshold,
         )
         ret = [r for r in ret if r[0] in classes_on_interest]
+
         print(
             "    ",
             img_path,
@@ -58,7 +59,7 @@ def detect_lp(input_dir, output_dir):
         if len(ret):
             img_org = cv2.imread(str(img_path))
             wh = np.array(img_org.shape[1::-1], dtype=float)
-            car_labels = []
+            lp_labels = []
             output_side = 288
 
             for i, r in enumerate(ret):
@@ -95,16 +96,14 @@ def detect_lp(input_dir, output_dir):
                     r = 1.0
 
                 label = Label(0, np.array([t, l]), br=np.array([b, r]))
-                img_car = crop_region(img_org, label)
-                if img_car.shape[:2] != [output_side, output_side]:
-                    img_car = cv2.resize(img_car, (output_side, output_side))
-                car_labels.append(label)
+                img_lp = crop_region(img_org, label)
+                if img_lp.shape[:2] != [output_side, output_side]:
+                    img_lp = cv2.resize(img_lp, (output_side, output_side))
+                lp_labels.append(label)
 
-                cv2.imwrite("%s/%s_%dcar.png" % (output_dir, img_path.stem, i),
-                            img_car)
+                cv2.imwrite("%s/%s_%d_lp.png" % (output_dir, img_path.stem, i), img_lp)
 
-            lwrite("%s/%s_cars.txt" % (output_dir, img_path.stem), car_labels)
-
+            lwrite("%s/%s_lps.txt" % (output_dir, img_path.stem), lp_labels)
 
 if __name__ == "__main__":
     try:
