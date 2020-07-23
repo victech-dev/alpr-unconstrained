@@ -22,6 +22,7 @@ if __name__ == '__main__':
         lp_threshold = .1
 
         wpod_net_path = sys.argv[2]
+
         wpod_net = load_model(wpod_net_path)
         wpod_net.summary()
 
