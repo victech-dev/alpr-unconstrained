@@ -140,8 +140,8 @@ def detect(net, meta, image, thresh=.5, hier_thresh=.5, nms=.45):
 
     t2 = time.time()
 
-    dets = get_network_boxes(net, im.w, im.h, thresh, hier_thresh, None, 0, pnum)
-
+    letter_box = 0
+    dets = get_network_boxes(net, im.w, im.h, thresh, hier_thresh, None, 0, pnum, letter_box)
     num = pnum[0]
 
     t3 = time.time()
@@ -155,6 +155,7 @@ def detect(net, meta, image, thresh=.5, hier_thresh=.5, nms=.45):
             if dets[j].prob[i] > 0:
                 b = dets[j].bbox
                 res.append((meta.names[i], dets[j].prob[i], (b.x, b.y, b.w, b.h)))
+                #print("** res appended=", (b.x, b.y, b.w, b.h))
 
     t4 = time.time()
 
@@ -169,14 +170,21 @@ def detect(net, meta, image, thresh=.5, hier_thresh=.5, nms=.45):
     return res, wh, (t0, t1, t2, t3, t4, t5)
     
 if __name__ == "__main__":
+    net = load_net(
+        "data/vehicle-detector/yolo-obj.cfg".encode("ascii"), 
+        "data/vehicle-detector/yolo-obj_best.weights".encode("ascii"), 0)
+    meta = load_meta("data/vehicle-detector/obj.data".encode("ascii"))
+    r = detect(net, meta, "samples/test/03009.jpg".encode("ascii"))
+    print(r)
+
     #net = load_net("cfg/densenet201.cfg", "/home/pjreddie/trained/densenet201.weights", 0)
     #im = load_image("data/wolf.jpg", 0, 0)
     #meta = load_meta("cfg/imagenet1k.data")
     #r = classify(net, meta, im)
     #print r[:10]
-    net = load_net("cfg/tiny-yolo.cfg", "tiny-yolo.weights", 0)
-    meta = load_meta("cfg/coco.data")
-    r = detect(net, meta, "data/dog.jpg")
-    print(r)
+    # net = load_net("cfg/tiny-yolo.cfg", "tiny-yolo.weights", 0)
+    # meta = load_meta("cfg/coco.data")
+    # r = detect(net, meta, "data/dog.jpg")
+    # print(r)
     
 
