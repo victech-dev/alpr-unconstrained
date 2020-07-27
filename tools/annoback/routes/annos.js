@@ -22,12 +22,12 @@ function getRandomInt(min, max) {
 }
 
 function readLabel(line) {
-    var tokens = line.split(",")
-    var numPoints = Number(tokens[0])
-    var label = []
+    let tokens = line.split(",")
+    let numPoints = Number(tokens[0])
+    let label = []
     for (let i = 0; i < numPoints; ++i) {
-        var x = Number(tokens[1 + i])
-        var y = Number(tokens[1 + numPoints + i])
+        let x = Number(tokens[1 + i])
+        let y = Number(tokens[1 + numPoints + i])
         label.push({ "x": x, "y": y})
     }
     return label
@@ -49,22 +49,22 @@ async function readLabels(fileName) {
 }
 
 function writeLabel(label) {
-    var line = "".concat(label.length.toString(), ",")
-    for (var i = 0; i < label.length; ++i) {
+    let line = "".concat(label.length.toString(), ",")
+    for (let i = 0; i < label.length; ++i) {
         line = line.concat(label[i].x.toString(), ",")
     }
-    for (var i = 0; i < label.length; ++i) {
+    for (let i = 0; i < label.length; ++i) {
         line = line.concat(label[i].y.toString(), ",")
     }
-    line = line.concat(",")
+    line = line.concat(",\n")
     return line
 }
 
 function writeLabels(fileName, labels) {
-    var ofs = fs.createWriteStream(fileName, {
+    let ofs = fs.createWriteStream(fileName, {
         flags: 'w'
     })
-    for (var i = 0; i < labels.length; ++i) {
+    for (let i = 0; i < labels.length; ++i) {
         ofs.write(writeLabel(labels[i]))
     }
     ofs.end()
@@ -96,11 +96,14 @@ glob(dataPath + "*.jpg", options, function (er, files) {
 
 /* GET random jpg file and its labels */
 router.get('/', async function(req, res, next) {
-    var idx = getRandomInt(0, jpgFiles.length - 1)
-    var jpgFile = jpgFiles[idx]
+    //var idx = getRandomInt(0, jpgFiles.length - 1)
+    let idx = 0
+    let jpgFile = jpgFiles[idx]
 
-    var preTxtFile = changeExt(jpgFile, "_pre.txt")
-    var labels = await readLabels(preTxtFile)
+    console.log("** jpgFile cnt=", jpgFiles.length)
+
+    let preTxtFile = changeExt(jpgFile, "_pre.txt")
+    let labels = await readLabels(preTxtFile)
     res.json({ "file": getPublicRelPath(jpgFile), "labels": labels });
 });
 
