@@ -1,7 +1,5 @@
 import numpy as np
-
 from os.path import isfile
-
 
 class Label:
     def __init__(self,
@@ -67,7 +65,6 @@ class Label:
 
 
 def lread(file_path, label_type=Label):
-
     if not isfile(file_path):
         return []
 
@@ -128,8 +125,7 @@ class Shape():
         ss = int(data[0])
         values = data[1:(ss * 2 + 1)]
         text = data[(ss * 2 + 1)] if len(data) >= (ss * 2 + 2) else ''
-        self.pts = np.array([float(value) for value in values]).reshape(
-            (2, ss))
+        self.pts = np.array([float(value) for value in values]).reshape((2, ss))
         self.text = text
 
 def readShapes(path, obj_type=Shape):
