@@ -1,6 +1,7 @@
 import numpy as np
 from math import sin, cos
 
+# same with cv2.getPerspectiveTransform
 def find_T_matrix(pts, t_pts):
     A = np.zeros((8, 9))
     for i in range(0, 4):
