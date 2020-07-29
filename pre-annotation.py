@@ -114,6 +114,7 @@ def detect_lp_pts(img, wpod_net_ret, threshold=.9):
 
     ret = []
     if len(final_labels):
+        print(" ** prob =", final_labels[0].prob())
         label0 = final_labels[0]
         ret.append(label0.pts_mn)
 
@@ -132,7 +133,8 @@ def pre_annotate(input_dir, output_dir):
     vehicle_meta = dn.load_meta(vehicle_dataset.encode("ascii"))
 
     # Load wpod-net
-    wpod_net_path = "data/lp-detector/wpod-net_update1.h5"
+    #wpod_net_path = "data/lp-detector/wpod-net_update1.h5"
+    wpod_net_path = "data/lp-detector/weights-200.h5"
     wpod_net = load_model(wpod_net_path)
     wpod_net.summary()
     wpod_net_threshold = .3
@@ -174,19 +176,19 @@ def pre_annotate(input_dir, output_dir):
             print(" ** annotating", str(img_path))
 
         img = cv2.imread(str(img_path))
-        img_show = img[:]
+        img_show = img.copy()
         img_w, img_h = np.array(img.shape[1::-1], dtype=int)
 
         labels = detect_lp_bb(img_path, vehicle_net, vehicle_meta,
                               classes_on_interest, vehicle_threshold)
 
         margin = net_stride
-        max_side = 288
+        max_side = 208
         shapes = []
         for label in labels:
             cx, cy, w, h = label
 
-            pw, ph = w + margin, h + margin
+            pw, ph = w + margin * 2, h + margin * 2
             pl, pr = max(cx - pw // 2, 0), min(cx + pw // 2, img_w)
             pt, pb = max(cy - ph // 2, 0), min(cy + ph // 2, img_h)
             pw, ph = pr - pl, pb - pt
@@ -201,6 +203,11 @@ def pre_annotate(input_dir, output_dir):
             img_lp = cv2.resize(img_lp_prev, (nw, nh))
             ratio = np.array((float(pw) / float(nw), float(ph) / float(nh)))
             ratio = np.reshape(ratio, (2, 1))
+
+            wname = "img"
+            cv2.imshow(wname, img_lp)
+            cv2.waitKey(0)
+            cv2.destroyWindow(wname)
 
             tensor_img_lp = im2single(img_lp)
             tensor_img_lp = np.expand_dims(tensor_img_lp, 0)
@@ -254,5 +261,11 @@ if __name__ == "__main__":
     #pre_annotate("/workspace/darknet/_train_lp/data/obj", "./_train_wpod/data/data_oid")
 
     # for kor_data annotaion
-    #resize_imgs("_train_wpod/data/data_kor_v1_raw", "_train_wpod/data/data_kor_v1_resized")
-    #pre_annotate("_train_wpod/data/data_kor_v1_resized", "_train_wpod/data/data_kor_v1")
+    #resize_imgs("_train_wpod/dataset/data_kor_v1_raw", "_train_wpod/dataset/data_kor_v1_resized")
+    #pre_annotate("_train_wpod/dataset/data_kor_v1_resized", "_train_wpod/dataset/data_kor_v1")
+
+    # for test wpod-net custom trained
+    #pre_annotate("_train_wpod/dataset/data_oid_preanno_test", "_train_wpod/dataset/data_oid_preanno_test_pre")
+    pre_annotate("_train_wpod/dataset/data_kor_preanno_test", "_train_wpod/dataset/data_kor_preanno_test_pre")
+
+

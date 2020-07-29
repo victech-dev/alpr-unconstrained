@@ -94,21 +94,24 @@ def batch_from_dataset(input_dim, model_stride):
 def step_decay(epoch):
     initial_lr = LEARNING_RATE
     min_lr = 0.0001
-    drop = 0.7
-    epochs_drop = 10.0
+    drop = 0.5
+    epochs_drop = 8.0
     lr = initial_lr * math.pow(drop, math.floor((1+epoch)/epochs_drop))
     lr = max(lr, min_lr)
     return lr
 
 if __name__ == "__main__":
-    model, model_stride, xshape, yshape = load_network(model_path, input_dim)
-    model.compile(loss=loss, optimizer=tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE))
-    model.summary()
+    strategy = tf.distribute.MirroredStrategy()
+    print('* Number of devices: ', strategy.num_replicas_in_sync)
+    with strategy.scope():
+        model, model_stride, xshape, yshape = load_network(model_path, input_dim)
+        model.compile(loss=loss, optimizer=tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE))
+        model.summary()
 
     callbacks = [
         ModelCheckpoint(
             os.path.join(output_dir, 'weights-{epoch:03d}.h5'), 
-            save_weights_only=True, save_best_only=False, save_freq=10),
+            save_weights_only=True, save_best_only=False),
         TensorBoard(
             log_dir=output_dir, update_freq=100),
         LearningRateScheduler(step_decay)]
