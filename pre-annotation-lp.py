@@ -147,8 +147,7 @@ def pre_annotate(input_dir, output_dir):
         return wpod_net.call(img)
 
     output_dir = Path(output_dir)
-    if not output_dir.exists():
-        output_dir.mkdir(parents=True, exist_ok=True)
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     img_paths = image_files_from_folder(input_dir)
     img_paths.sort()
