@@ -8,7 +8,7 @@ npm install
 
 ### Run server
 ```
-npm run serve
+npm start
 ```
 
 ### Reference

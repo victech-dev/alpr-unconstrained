@@ -1,5 +1,5 @@
 <template>
-    <div class="annotool">
+    <div class="wpodanno">
         <div>
             <button class="pure-button" @click="onStart">Start</button>--
             <button class="pure-button" @click="onSubmit">Submit</button>--
@@ -21,6 +21,7 @@ function clamp(num, min, max) {
 }
 
 function loadImage(url) {
+    console.log(url)
     return new Promise(r => { 
         let i = new Image(); 
         i.onload = (() => r(i)); 
@@ -108,7 +109,6 @@ class Label {
 export default {
     created () {
         //this.onStart
-
     },
     mounted() {
         console.log("mounted")
@@ -173,7 +173,7 @@ export default {
 
         onStart() {
             var vm = this
-            this.$http.get('/annos')
+            this.$http.get('/wpodannos')
                 .then(function(response) {
                     vm.annoData = response.data
                     vm.scale = 1.0
@@ -208,7 +208,7 @@ export default {
             }
 
             var vm = this
-            this.$http.post('/annos', postData)
+            this.$http.post('/wpodannos', postData)
                 .then(function (response) {
                     console.log(response);
                     vm.showSubmitResult(response.status)

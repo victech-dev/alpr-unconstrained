@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import Annotool from '@/components/Annotool'
+import WpodAnno from '@/components/WpodAnno'
 import Help from '@/components/Help'
 
 Vue.use(Router)
@@ -10,8 +10,8 @@ export const router = new Router({
  routes: [
    {
      path: '/',
-     name: 'annotool',
-     component: Annotool
+     name: 'wpodanno',
+     component: WpodAnno
    },
    {
      path: '/help',
