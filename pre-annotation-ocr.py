@@ -83,6 +83,8 @@ def pre_annotate_ocr(input_dir):
     # Load ocr
     ocr_weights = "data/ocr-kor/yolov4-tiny-obj_best.weights"
     ocr_netcfg = "data/ocr-kor/yolov4-tiny-obj.cfg"
+    # ocr_weights = "data/ocr-kor/yolo-obj_best.weights"
+    # ocr_netcfg = "data/ocr-kor/yolo-obj.cfg"
     ocr_dataset = "data/ocr-kor/obj.data"
     classes_on_interest = []
     net_threshold = 0.5
@@ -133,5 +135,5 @@ if __name__ == "__main__":
     #     "_train_wpod/dataset/data_kor_v1_done",
     #     "_train_wpod/dataset/data_kor_v1_unwarp")
 
-    #pre_annotate_ocr("_train_ocr/dataset/sync/val")
+    #pre_annotate_ocr("_train_ocr/dataset/synth/val")
     pre_annotate_ocr("_train_wpod/dataset/data_kor_v1_unwarp")

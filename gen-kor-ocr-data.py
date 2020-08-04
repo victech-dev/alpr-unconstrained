@@ -27,7 +27,7 @@ all_chars = kor_chars + num_chars
 min_font_size = 34
 max_font_size = 40
 
-print("** len(kor_chars_img)=", len(kor_chars_img))
+print("** len(kor_chars)=", len(kor_chars))
 print("** len(num_chars)=", len(num_chars))
 
 def get_random_hsv():
@@ -49,18 +49,18 @@ def hsv_to_bgr(hsv):
     return cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR).reshape((3,))
 
 def get_random_kor_char():
-    char_idx = np.random.randint(0, len(kor_chars_img))
-    char = kor_chars_img[char_idx]
+    char_idx = np.random.randint(0, len(kor_chars))
+    char = kor_chars[char_idx]
     return char, char_idx
 
 def get_random_num_char():
     char_idx = np.random.randint(0, len(num_chars))
     char = num_chars[char_idx]
-    # assume idx=[0, len(kor_chars_img) + len(num_chars)]
-    return char, char_idx + len(kor_chars_img)
+    # assume idx=[0, len(kor_chars) + len(num_chars)]
+    return char, char_idx + len(kor_chars)
 
-def get_random_kor_font():
-    font_names = kor_font_names + kor_font_img_names
+def get_random_kor_font(no_img_font=False):
+    font_names = kor_font_names if no_img_font else kor_font_names + kor_font_img_names
     #font_names = kor_font_names
     #font_names = kor_font_img_names
     return font_names[np.random.randint(0, len(font_names))]
@@ -75,6 +75,8 @@ def get_random_font_size():
     return np.random.randint(min_font_size, max_font_size + 1)
 
 def read_kor_font_img(filePath):
+    if Path(filePath).exists() == False:
+        return None
     with open(filePath.encode("utf-8") , "rb") as f:
         data = bytearray(f.read())
         npdata = np.asarray(data, dtype=np.uint8)
@@ -82,8 +84,10 @@ def read_kor_font_img(filePath):
 
 def gen_char_img_from_kor_font_img(char, font_name, font_size):
     char_image = read_kor_font_img(str(Path(font_name) / (str(char) + ".png")))
+    if char_image is None:
+        return None
+
     w, h = char_image.shape[1], char_image.shape[0]
-    
     ratio = float(font_size) / float(h)
     w, h = int(w * ratio), int(h * ratio)
     char_image = cv2.resize(char_image, (w, h),
@@ -95,13 +99,16 @@ def gen_char_img_from_kor_font_img(char, font_name, font_size):
     cl = int((image.shape[1] - w) // 2)
     ct = int((image.shape[0] - h) // 2)
     image[ct:ct+h, cl:cl+w] = char_image
-
     image = cv2.bitwise_not(image)
     return image
 
-def gen_char_img(char, font_name, font_size):
+def gen_char_img(char, font_name, fallback_font_name, font_size):
     if font_name in kor_font_img_names:
-        return gen_char_img_from_kor_font_img(char, font_name, font_size)
+        image = gen_char_img_from_kor_font_img(char, font_name, font_size)
+        if image is not None:
+            return image
+        else:
+            font_name = fallback_font_name
 
     image = Image.new('RGB', (font_size*2, font_size*2), (0, 0, 0))
     font = ImageFont.truetype(font_name, size=font_size)
@@ -127,6 +134,18 @@ def calc_bb(image):
 def shrink_img(image):
     l, t, r, b = calc_bb(image)
     return image[t:b, l:r, :].copy()
+
+def multiply_img(char, image, w_ratio, w_ratio_offset):
+    # special character customizing
+    if char == '1':
+        w_ratio = w_ratio * 0.6
+        w_ratio_offset = w_ratio_offset * 0.6
+
+    w, h = float(image.shape[1]), float(image.shape[0])
+    w_ratio = np.random.uniform(w_ratio - w_ratio_offset, w_ratio + w_ratio_offset)
+    fx = (h * w_ratio) / w
+    #print((w, h, w_ratio, fx))
+    return cv2.resize(image, dsize=(0, 0), fx=fx, fy=1., interpolation=cv2.INTER_LINEAR)
 
 def draw_label(img, pts, line_color=(0, 0, 255)):
     w, h = img.shape[1], img.shape[0]
@@ -162,8 +181,8 @@ def augement_img(image):
                 ]),
             iaa.OneOf(
                 [
-                    iaa.Clouds(),
-                    iaa.Fog(),
+                    #iaa.Clouds(),
+                    #iaa.Fog(),
                     iaa.Snowflakes(flake_size=(0.05, 0.1), speed=(0.005, 0.03)),
                     iaa.Canny(alpha=(0.0, 0.2)),
                     # iaa.Dropout(0.04), # maybe included in darknet augmentation??
@@ -227,49 +246,109 @@ def warp_affine_pts(mat, pts):
     ptsh = _pts2ptsh(pts) # (2, 4) -> (3, 4)
     return np.matmul(mat, ptsh) # (2, 3) * (3, 4)
 
-def gen_lp_image(idx=0):
+# cx, cx_offset, cy, cy_offset, font_size, font_size_offset, isNumber, w_ratio
+sync_template_0 = [ # 7자리 1줄 (12가3456)
+    ( 48,        3, 48, 2, 40, 2, True,  0.5 ),
+    ( 48 + 32*1, 3, 48, 2, 40, 2, True,  0.5 ),
+    ( 48 + 32*2, 3, 48, 2, 40, 2, False, 0.5 ),
+    ( 48 + 32*3, 3, 48, 2, 40, 2, True,  0.5 ),
+    ( 48 + 32*4, 3, 48, 2, 40, 2, True,  0.5 ),
+    ( 48 + 32*5, 3, 48, 2, 40, 2, True,  0.5 ),
+    ( 48 + 32*6, 3, 48, 2, 40, 2, True,  0.5 ),
+]
+
+sync_template_1 = [ # 7자리 2줄 (12가 / 3456)
+    ( 144 - 40,   3, 25,      2, 24, 2, True,  1.2 ),
+    ( 144     ,   3, 25,      2, 24, 2, True,  1.2 ),
+    ( 144 + 40,   3, 25,      2, 24, 2, False, 1.2 ),
+    ( 144 - 26*3, 3, 48 + 12, 2, 40, 2, True,  1.0 ),
+    ( 144 - 26*1, 3, 48 + 12, 2, 40, 2, True,  1.0 ),
+    ( 144 + 26*1, 3, 48 + 12, 2, 40, 2, True,  1.0 ),
+    ( 144 + 26*3, 3, 48 + 12, 2, 40, 2, True,  1.0 ),
+]
+
+sync_template_2 = [ # 택시 : 지역 2자리 + 7자리 2줄 (경기12가2345)
+    ( 38 + 30*0, 0, 48 - 16, 0, 20, 0, False, 1.0 ),
+    ( 38 + 30*0, 0, 48 + 16, 0, 20, 0, False, 1.0 ),
+    ( 38 + 30*1, 3, 48     , 2, 44, 2, True,  0.42 ),
+    ( 38 + 30*2, 3, 48     , 2, 44, 2, True,  0.42 ),
+    ( 38 + 30*3, 3, 48     , 2, 44, 2, False, 0.42 ),
+    ( 38 + 30*4, 3, 48     , 2, 44, 2, True,  0.42 ),
+    ( 38 + 30*5, 3, 48     , 2, 44, 2, True,  0.42 ),
+    ( 38 + 30*6, 3, 48     , 2, 44, 2, True,  0.42 ),
+    ( 38 + 30*7, 3, 48     , 2, 44, 2, True,  0.42 ),
+]
+
+sync_template_3 = [ # 9자리 2줄 (전북86 / 사3456)
+    ( 144 - 45,   1, 25,      1, 30, 2, False, 1.0 ),
+    ( 144 - 15,   1, 25,      1, 30, 2, False, 1.0 ),
+    ( 144 + 15,   1, 25,      1, 30, 2, True,  0.8 ),
+    ( 144 + 45,   1, 25,      1, 30, 2, True,  0.8 ),
+    ( 144 - 48*2, 3, 48 + 12, 2, 36, 2, False, 1.0 ),
+    ( 144 - 48*1, 3, 48 + 12, 2, 36, 2, True,  0.9 ),
+    ( 144 - 48*0, 3, 48 + 12, 2, 36, 2, True,  0.9 ),
+    ( 144 + 48*1, 3, 48 + 12, 2, 36, 2, True,  0.9 ),
+    ( 144 + 48*2, 3, 48 + 12, 2, 36, 2, True,  0.9 ),
+]
+
+sync_templates = [
+    sync_template_0,
+    sync_template_1,
+    sync_template_2,
+    sync_template_3,
+]
+
+def random_template():
+    return sync_templates[np.random.randint(0, len(sync_templates))]
+
+def check_h_diff(c0, c1, min_diff):
+    min_h = min(int(c0[0]), int(c1[0]))
+    max_h = max(int(c0[0]), int(c1[0]))
+    return (max_h - min_h < min_diff) or (min_h + 256 - max_h < min_diff)
+
+def gen_lp_image(template, idx=0):
     bg_color = get_random_hsv()
     font_color = get_random_hsv()
-    while (abs(int(bg_color[0]) - int(font_color[0])) < 64):
+    while check_h_diff(bg_color, font_color, 96) == False:
         font_color = get_random_hsv()
     bg_color = hsv_to_bgr(bg_color)
     font_color = hsv_to_bgr(font_color)
     font_color_f = tuple([float(v) for v in font_color])
 
-    w_margin, h_margin = 32, 8
-    w, h = 208 + w_margin * 2 , 52 + h_margin * 2
+    w, h = 288, 96
     image = np.array(Image.new('RGB', (w, h), tuple(bgr_to_rgb(bg_color))))
     image = image[:, :, ::-1].copy()
 
-    font_size = get_random_font_size()
     kor_font_name = get_random_kor_font()
+    kor_font_fallback_name = get_random_kor_font(no_img_font=True)
     num_font_name = get_random_num_font()
-    #print("** font : size=", font_size, ", kor=", kor_font_name, "num=", num_font_name)
-    
-    random_translate_x = np.random.randint(0, 30) - 15
+
+    random_x_offset = np.random.randint(0, 30) - 15
     char_idx_list = []
     char_pts_list = []
-    for i in range(7):
-        if i == 2:
-            char, char_idx = get_random_kor_char()
-            char_image = gen_char_img(char, kor_font_name, font_size)
-        else:
+
+    def _dice_offset(v):
+        return np.random.randint(-v,  v + 1) if v > 0 else 0
+
+    for tc in template:
+        cx, cx_offset, cy, cy_offset, font_size, font_size_offset, isNumber, w_ratio = tc
+
+        font_size = font_size + _dice_offset(font_size_offset)
+
+        if isNumber:
             char, char_idx = get_random_num_char()
-            char_image = gen_char_img(char, num_font_name, font_size)
+            char_image = gen_char_img(char, num_font_name, None, font_size)
+        else:
+            char, char_idx = get_random_kor_char()
+            char_image = gen_char_img(char, kor_font_name, kor_font_fallback_name, font_size)
 
         char_image = shrink_img(char_image)
+        char_image = multiply_img(char, char_image, w_ratio, 0.12)
         cw, ch = char_image.shape[1], char_image.shape[0]
 
-        t = (h - ch) // 2
-        # per character random translate
-        t_random_translate = np.random.randint(0, 3) - 2 
-        t = t + t_random_translate
-
-        l = w_margin + 15 + 30 * i - cw // 2
-        # per character random translate
-        l_random_translate = np.random.randint(0, 5) - 3
-        l = l + l_random_translate + random_translate_x
-
+        cx = cx + _dice_offset(cx_offset)
+        cy = cy + _dice_offset(cy_offset)
+        l, t = cx - cw // 2 + random_x_offset, cy - ch // 2
         image = overlay_char_img(image, char_image, l, t, font_color_f)
 
         char_idx_list.append(char_idx)
@@ -277,7 +356,8 @@ def gen_lp_image(idx=0):
         char_pts_list.append(char_pts)
 
     # rotation
-    rotation_degree = np.random.random() * 5.0 - 2.5
+    rotation_degree_max = 8.
+    rotation_degree = np.random.uniform(-rotation_degree_max, rotation_degree_max)
     rotation_mat = cv2.getRotationMatrix2D((w / 2, h / 2), rotation_degree, 1.0)
     rotation_borderValue = tuple([int(v) for v in bg_color])
     image = cv2.warpAffine(image, rotation_mat, (w, h), borderValue=rotation_borderValue)
@@ -318,7 +398,8 @@ def write_darknet_label(path, shapes):
                     fp.write(f'{shape.text} {cx} {cy} {w} {h}\n')
 
 def gen_data(base_path, idx):
-    image, shapes = gen_lp_image(idx)
+    #image, shapes = gen_lp_image_old(idx)
+    image, shapes = gen_lp_image(random_template(), idx)
     base_path = Path(base_path)
     cv2.imwrite(str(base_path / (str(idx).zfill(5) + ".jpg")), image)
     writeShapes(str(base_path / (str(idx).zfill(5) + "_shapes.txt")), shapes)
@@ -331,5 +412,6 @@ def gen_dataset(base_path, cnt=20):
 
 if __name__ == "__main__":
     #gen_dataset('tmp/sample/', 20)
-    #gen_dataset('_train_ocr/dataset/sync/train/', 12000)
-    #gen_dataset('_train_ocr/dataset/sync/val/', 3000)
+    gen_dataset('_train_ocr/dataset/synth/train/', 12000)
+    gen_dataset('_train_ocr/dataset/synth/val/', 3000)
+
