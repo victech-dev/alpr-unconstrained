@@ -6,7 +6,7 @@ const glob = require('glob')
 const readline = require('readline');
 
 const publicPath = path.join(__dirname, '../public/');
-const dataPath = path.join(publicPath, 'data/');
+const dataPath = path.join(publicPath, 'data_wpod/');
 var jpgFiles = []
 
 function removeJpgFile(name) {
