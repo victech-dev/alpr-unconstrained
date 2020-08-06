@@ -1,5 +1,5 @@
 <template>
-  <div class="help">
+  <div class="wpod_help">
     <h4>** Start 버튼 **</h4>
     <ul>
       <li>새로 편집할 데이터를 불러옵니다.</li>
@@ -32,7 +32,7 @@
 
 <script>
 export default {
-  name: 'Help',
+  name: 'WpodHelp',
   props: {
     msg: String
   }
