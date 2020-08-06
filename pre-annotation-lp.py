@@ -57,8 +57,7 @@ class LabelEx(Label):
         br = np.amax(pts, 1)
         Label.__init__(self, cl, tl, br, prob)
 
-def detect_lp_bb(img_path, model_net, model_meta, 
-                      classes_on_interest, threshold):
+def detect_lp_bb(img_path, model_net, model_meta, classes_on_interest, threshold):
     ret, _, _ = dn.detect(
         model_net,
         model_meta,

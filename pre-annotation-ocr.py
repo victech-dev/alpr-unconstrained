@@ -3,17 +3,13 @@ import cv2
 import tensorflow as tf
 from tensorflow import keras
 import numpy as np
-import traceback
-import time
 from pathlib import Path
 from glob import glob
 import shutil
-from datetime import datetime as dt
-import datetime
 
 import darknet.python.darknet as dn
 
-from src.label import Label, Shape, writeShapes, readShapes
+from src.label import Label, Shape, readShapes
 from src.utils import image_files_from_folder, im2single, nms
 from src.keras_utils import load_model
 
@@ -51,31 +47,44 @@ def unwarp_wpodnet_dataset_from_label(input_dir, output_dir):
             print(output_file_name)
             print(pts0, pts1)
 
-def detect_lp_bb(img_path, model_net, model_meta, 
-                      classes_on_interest, threshold):
+def detect_char_labels(img_path, model_net, model_meta, threshold):
     ret, _, _ = dn.detect(
         model_net,
         model_meta,
         str(img_path).encode("ascii"),
         thresh=threshold,
     )
-    if len(classes_on_interest) > 0:
-        ret = [r for r in ret if r[0] in classes_on_interest]
 
-    lp_labels = []
+    def _find_class_idx(class_name):
+        ret = -1
+        for i in range(model_meta.classes):
+            if model_meta.names[i] == class_name:
+                ret = i
+                break
+        return ret
+
+    char_labels = []
     if len(ret):
-        ret
-        for i, r in enumerate(ret):
+        for _, r in enumerate(ret):
+            class_name = r[0]
+            class_idx = _find_class_idx(class_name)
             cx, cy, w, h = np.array(r[2][:4]).astype(int)
-            lp_labels.append((cx, cy, w, h, r[0]))
+            char_labels.append((class_idx, class_name, cx, cy, w, h))
 
-    lp_labels.sort(key = lambda v : v[0])
-    return lp_labels
+    char_labels.sort(key = lambda v : v[0])
+    return char_labels
 
-def pre_annotate_ocr(input_dir):
+def write_char_labels(path, char_labels):
+    if len(char_labels):
+        with open(path, 'w') as fp:
+            for char_label in char_labels:
+                class_idx, _, cx, cy, w, h = char_label
+                fp.write(f'{class_idx} {cx} {cy} {w} {h}\n')
+
+def pre_annotate_ocr(input_dir, output_dir):
     input_dir = Path(input_dir)
-    # output_dir = Path(output_dir)
-    # output_dir.mkdir(parents=True, exist_ok=True)
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     img_paths = image_files_from_folder(str(input_dir))
     img_paths.sort()
@@ -86,27 +95,28 @@ def pre_annotate_ocr(input_dir):
     # ocr_weights = "data/ocr-kor/yolo-obj_best.weights"
     # ocr_netcfg = "data/ocr-kor/yolo-obj.cfg"
     ocr_dataset = "data/ocr-kor/obj.data"
-    classes_on_interest = []
     net_threshold = 0.5
 
-    ocr_net = dn.load_net(ocr_netcfg.encode("ascii"),
-                              ocr_weights.encode("ascii"), 0)
+    ocr_net = dn.load_net(ocr_netcfg.encode("ascii"), ocr_weights.encode("ascii"), 0)
     ocr_meta = dn.load_meta(ocr_dataset.encode("ascii"))
 
     for _, img_path in enumerate(img_paths):
         img_path = Path(img_path)
+        output_img_path = output_dir / img_path.name
+        output_txt_path = output_dir / (img_path.stem + "_pre.txt")
+
+        print(" ** annotating", str(img_path))
 
         img = cv2.imread(str(img_path))
         img_show = img.copy()
         img_w, img_h = np.array(img.shape[1::-1], dtype=int)
 
-        labels = detect_lp_bb(img_path, ocr_net, ocr_meta,
-                              classes_on_interest, net_threshold)
+        char_labels_raw = detect_char_labels(img_path, ocr_net, ocr_meta, net_threshold)
 
-        char_list = []
-        for label in labels:
-            cx, cy, w, h, class_name = label
-            char_list.append(class_name.decode('utf-8'))
+        #char_list = []
+        char_labels = []
+        for char_label in char_labels_raw:
+            class_idx, class_name, cx, cy, w, h = char_label
 
             line_color = (255, 0, 255)
             pts = np.array([
@@ -121,14 +131,21 @@ def pre_annotate_ocr(input_dir):
                     (int(pts[0][(i+1)%4]), int(pts[1][(i+1)%4])),
                     line_color, thickness=1)
 
-        print("".join(char_list))
-        
+            class_name = class_name.decode('utf-8')
+            cx, cy, w, h = float(cx) / img_w, float(cy) / img_h, float(w) / img_w, float(h) / img_h
+            char_labels.append((class_idx, class_name, cx, cy, w, h))\
+
         wname = "img"
         cv2.imshow(wname, img_show)
         key = cv2.waitKey(0) & 0xEFFFFF
         cv2.destroyWindow(wname)
         if key == 27:
             break
+        elif key == 32:
+            shutil.copy(str(img_path), str(output_img_path))
+            write_char_labels(str(output_txt_path), char_labels)
+        else:
+            print("    -> ignored")
 
 if __name__ == "__main__":
     # unwarp_wpodnet_dataset_from_label(
@@ -136,4 +153,4 @@ if __name__ == "__main__":
     #     "_train_wpod/dataset/data_kor_v1_unwarp")
 
     #pre_annotate_ocr("_train_ocr/dataset/synth/val")
-    pre_annotate_ocr("_train_wpod/dataset/data_kor_v1_unwarp")
+    pre_annotate_ocr("_train_wpod/dataset/data_kor_v1_unwarp", "_train_ocr/dataset/data_kor_v1")
