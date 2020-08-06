@@ -7,6 +7,13 @@ module.exports = {
                 pathRewrite: { 
                     '^/wpodannos': ''
                 } 
+            },
+            '/ocrannos': { 
+                target: 'http://localhost:3000/ocrannos',
+                changeOrigin: true, 
+                pathRewrite: { 
+                    '^/ocrannos': ''
+                } 
             } 
         } 
     },
