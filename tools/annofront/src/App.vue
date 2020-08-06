@@ -43,16 +43,6 @@
     >
       <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
       <v-toolbar-title>VDMS annotation tool</v-toolbar-title>
-      <!-- <div class="d-flex align-center">
-        <v-img
-          alt="Vuetify Name"
-          class="shrink mt-1 hidden-sm-and-down"
-          contain
-          min-width="100"
-          src="http://victech.io/images/VIC_Logo.png"
-          width="120"
-        />
-      </div> -->
 
       <v-spacer></v-spacer>
 
@@ -77,13 +67,11 @@
 </template>
 
 <script>
-//import HelloWorld from './components/HelloWorld';
 
 export default {
   name: 'App',
 
   components: {
-    //HelloWorld,
   },
 
   data: () => ({

@@ -15,6 +15,9 @@ module.exports = {
           "^/ocrannos": ""
         }
       }
+    },
+    "watchOptions": {
+        poll: true
     }
   },
   "outputDir": "../annoback/public",

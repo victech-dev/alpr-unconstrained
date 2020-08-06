@@ -1,114 +1,130 @@
 <template>
-    <div class="ocranno">
-        <div>
-            <button class="pure-button" @click="onStart">Start</button>--
-            <button class="pure-button" @click="onSubmit">Submit</button>
-        </div>
-        <div>
-            -- {{ submitResult }} -- 
-        </div>
-        
-        <h5> file : {{ annoData === null ? "none" : annoData.file }}, 
-            wh=({{ image === null ? 0 : image.width }}, {{ image === null ? 0 : image.height }})
-        </h5>
+    <v-container >
+        <v-row align="center" justify="center" >
+            <v-col cols=6>
+                <v-row dense align="center" justify="end" >
+                    <v-btn class="ma-2" tile dark color="indigo" v-on:click="onStart" >Start</v-btn>
+                    <v-btn class="ma-2" tile outlined color="success" v-on:click="onSubmit">Submit</v-btn>
+                </v-row>
+            </v-col>
+            <!-- <v-col cols=2>
+                <v-row dense align="center" justify="center" >
+                    
+                </v-row>
+            </v-col> -->
+            <v-col cols=6>
+                <v-row dense align="center" justify="start" >
+                    <h4>
+                        file : {{ annoData === null ? "none" : annoData.file }}
+                    </h4>
+                </v-row>
+            </v-col>
+        </v-row>
+        <v-row align="start" justify="center" >
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls00">가</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls01">나</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls02">다</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls03">라</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls04">마</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls35">바</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls36">사</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls37">아</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls38">자</v-btn>
+        </v-row>
+        <v-row align="start" justify="center" >
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls05">거</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls06">너</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls07">더</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls08">러</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls09">머</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls20">버</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls21">서</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls22">어</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls23">저</v-btn>
+        </v-row>
+        <v-row align="start" justify="center" >
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls10">고</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls11">노</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls12">도</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls13">로</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls14">모</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls24">보</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls25">소</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls26">오</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls27">조</v-btn>
+        </v-row>
+        <v-row align="start" justify="center" >
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls15">구</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls16">누</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls17">두</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls18">루</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls19">무</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls28">부</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls29">수</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls30">우</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls31">주</v-btn>
+        </v-row>
+        <v-row align="start" justify="center" >
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls32">허</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls33">하</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls34">호</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls39">배</v-btn>
+        </v-row>
+        <v-row align="start" justify="center" >
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls40">울</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls41">대</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls42">광</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls43">산</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls44">경</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls45">기</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls46">충</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls47">북</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls48">전</v-btn>
+        </v-row>
+        <v-row align="start" justify="center" >
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls49">제</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls50">인</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls51">천</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls52">세</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls53">종</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls54">강</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls55">원</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls56">남</v-btn>
+        </v-row>
+        <v-row align="start" justify="center" >
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls57">0</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls58">1</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls59">2</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls60">3</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls61">4</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls62">5</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls63">6</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls64">7</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls65">8</v-btn>
+            <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls66">9</v-btn>
+        </v-row>
+        <v-row align="start" justify="center">
+            <canvas
+                id="imgCanvas" 
+                tabindex="0" 
+                v-bind:width="width" 
+                v-bind:height="height" 
+                @keydown="onKeyDown" 
+                @click="onMouseLClick"/>
+        </v-row>
 
-        <div>
-            <button class="pure-button" @click="onCls00">가</button>
-            <button class="pure-button" @click="onCls01">나</button>
-            <button class="pure-button" @click="onCls02">다</button>
-            <button class="pure-button" @click="onCls03">라</button>
-            <button class="pure-button" @click="onCls04">마</button>
-            <button class="pure-button" @click="onCls35">바</button>
-            <button class="pure-button" @click="onCls36">사</button>
-            <button class="pure-button" @click="onCls37">아</button>
-            <button class="pure-button" @click="onCls38">자</button>
-        </div>
-        <div>
-            <button class="pure-button" @click="onCls05">거</button>
-            <button class="pure-button" @click="onCls06">너</button>
-            <button class="pure-button" @click="onCls07">더</button>
-            <button class="pure-button" @click="onCls08">러</button>
-            <button class="pure-button" @click="onCls09">머</button>
-            <button class="pure-button" @click="onCls20">버</button>
-            <button class="pure-button" @click="onCls21">서</button>
-            <button class="pure-button" @click="onCls22">어</button>
-            <button class="pure-button" @click="onCls23">저</button>
-        </div>
-
-        <div>
-            <button class="pure-button" @click="onCls10">고</button>
-            <button class="pure-button" @click="onCls11">노</button>
-            <button class="pure-button" @click="onCls12">도</button>
-            <button class="pure-button" @click="onCls13">로</button>
-            <button class="pure-button" @click="onCls14">모</button>
-            <button class="pure-button" @click="onCls24">보</button>
-            <button class="pure-button" @click="onCls25">소</button>
-            <button class="pure-button" @click="onCls26">오</button>
-            <button class="pure-button" @click="onCls27">조</button>
-        </div>
-        <div>
-            <button class="pure-button" @click="onCls15">구</button>
-            <button class="pure-button" @click="onCls16">누</button>
-            <button class="pure-button" @click="onCls17">두</button>
-            <button class="pure-button" @click="onCls18">루</button>
-            <button class="pure-button" @click="onCls19">무</button>
-            <button class="pure-button" @click="onCls28">부</button>
-            <button class="pure-button" @click="onCls29">수</button>
-            <button class="pure-button" @click="onCls30">우</button>
-            <button class="pure-button" @click="onCls31">주</button>
-        </div>
-
-        <div>
-            <button class="pure-button" @click="onCls32">허</button>
-            <button class="pure-button" @click="onCls33">하</button>
-            <button class="pure-button" @click="onCls34">호</button>
-            <button class="pure-button" @click="onCls39">배</button>
-        </div>
-
-        <div>
-            <button class="pure-button" @click="onCls40">울</button>
-            <button class="pure-button" @click="onCls41">대</button>
-            <button class="pure-button" @click="onCls42">광</button>
-            <button class="pure-button" @click="onCls43">산</button>
-            <button class="pure-button" @click="onCls44">경</button>
-            <button class="pure-button" @click="onCls45">기</button>
-            <button class="pure-button" @click="onCls46">충</button>
-            <button class="pure-button" @click="onCls47">북</button>
-            <button class="pure-button" @click="onCls48">전</button>
-            <button class="pure-button" @click="onCls49">제</button>
-        </div>
-
-        <div>
-            <button class="pure-button" @click="onCls50">인</button>
-            <button class="pure-button" @click="onCls51">천</button>
-            <button class="pure-button" @click="onCls52">세</button>
-            <button class="pure-button" @click="onCls53">종</button>
-            <button class="pure-button" @click="onCls54">강</button>
-            <button class="pure-button" @click="onCls55">원</button>
-            <button class="pure-button" @click="onCls56">남</button>
-        </div>
-
-        <div>
-            <button class="pure-button" @click="onCls57">0</button>
-            <button class="pure-button" @click="onCls58">1</button>
-            <button class="pure-button" @click="onCls59">2</button>
-            <button class="pure-button" @click="onCls60">3</button>
-            <button class="pure-button" @click="onCls61">4</button>
-            <button class="pure-button" @click="onCls62">5</button>
-            <button class="pure-button" @click="onCls63">6</button>
-            <button class="pure-button" @click="onCls64">7</button>
-            <button class="pure-button" @click="onCls65">8</button>
-            <button class="pure-button" @click="onCls66">9</button>
-        </div>
-
-        <h4>
-            Char : {{ curLabel === null ? "-" : getClassChar(curLabel.cls) }}
-        </h4>
-
-        <canvas id="imgCanvas" tabindex="0" 
-            v-bind:width="width" v-bind:height="height" @keydown="onKeyDown"
-            @click="onMouseLClick"/>
-    </div>
+        <v-snackbar
+            v-model="submitResultShow"
+            :color="submitResultColor"
+            timeout=6000
+            bottom=true
+        >
+            {{ submitResult }}
+            <v-btn dark text @click="submitResultShow = false">
+            Close
+            </v-btn>
+        </v-snackbar>
+    </v-container>
 </template>
 
 <script>
@@ -247,8 +263,8 @@ export default {
             annoData: [],
 
             canvas: null,
-            width: 288, // Do not set directly, call updateView()
-            height: 96, // Do not set directly, call updateView()
+            width: 288 * 3, // Do not set directly, call updateView()
+            height: 96 * 3, // Do not set directly, call updateView()
 
             image: null,
             scale: 1.0, // image scale
@@ -269,6 +285,9 @@ export default {
             creatingLabel: [],
 
             submitResult: "",
+            submitResultShow: false,
+            submitResultColor: '',
+
         }
     },
     methods: {
@@ -350,16 +369,25 @@ export default {
 
         showSubmitResult(code) {
             if (code === 200) {
+
+                this.submitResultColor = 'success'
                 this.submitResult = "OK ( updated again!)"
+                this.submitResultShow = true
             }
             else if (code === 201) {
+                this.submitResultColor = 'success'
                 this.submitResult = "OK ( created )"
+                this.submitResultShow = true
             }
             else if (code === 404) {
+                this.submitResultColor = 'error'
                 this.submitResult = "Fail (Already submitted)"
+                this.submitResultShow = true
             }
             else {
+                this.submitResultColor = 'error'
                 this.submitResult = "Fail (code=" + code.toString() + ")"
+                this.submitResultShow = true
             }
         },
 
@@ -370,6 +398,7 @@ export default {
             let iy = vy / this.height * vr.h + vr.t
             return new Point(ix, iy)
         },
+
         // image coordinate -> canvas coordinate
         fromImageCoord(ix, iy) {
             let vr = this.viewRect
@@ -381,11 +410,6 @@ export default {
         getClassChar(cls) {
             return this.clsChars.charAt(cls)
         },
-
-        // onMouseRClick(e) {
-        //     //console.log("onMouseRClick", e)
-        //     var pt = this.toImageCoord(e.offsetX, e.offsetY)
-        // },
 
         onMouseLClick(e) {
             console.log("onMouseLClick", e)
