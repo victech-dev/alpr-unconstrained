@@ -3,15 +3,11 @@
         <v-row align="center" justify="center" >
             <v-col cols=6>
                 <v-row dense align="center" justify="end" >
+                    <v-btn class="ma-2" tile outlined color="success" v-on:click="showHelp=true">Help</v-btn>
                     <v-btn class="ma-2" tile dark color="indigo" v-on:click="onStart" >Start</v-btn>
-                    <v-btn class="ma-2" tile outlined color="success" v-on:click="onSubmit">Submit</v-btn>
+                    <v-btn class="ma-2" tile dark color="indigo" v-on:click="onSubmit">Submit</v-btn>
                 </v-row>
             </v-col>
-            <!-- <v-col cols=2>
-                <v-row dense align="center" justify="center" >
-                    
-                </v-row>
-            </v-col> -->
             <v-col cols=6>
                 <v-row dense align="center" justify="start" >
                     <h4>
@@ -19,6 +15,53 @@
                     </h4>
                 </v-row>
             </v-col>
+
+            <v-dialog
+                v-model="showHelp"
+                max-width="800"
+                >
+                <v-card>
+                    <v-card-title class="headline">
+                        Ocr 데이터 편집 가이드
+                    </v-card-title>
+
+                    <v-card-text>
+                        <v-divider></v-divider>
+                        <br>
+                        <p>
+                            'START' 버튼으로 이미지 한 장을 받아옵니다.<br>
+                            번호판 각각의 글자에 대해서 bouding-box(bb)를 라벨링 해야 합니다.<br>
+                            또한 해당 bb가 어느 글자인지 지정해 주어야 합니다. (bb선택 후 글자 버튼 클릭)<br>
+                            이후 'SUBMIT' 으로 제출합니다. <b>(여러번 submit 가능!!)</b>
+                        </p>
+                        <v-divider></v-divider>
+                        <br>
+                        <h3>마우스 클릭</h3>
+                        <p>&nbsp;&nbsp;그 곳의 bb를 선택</p>
+                        <h3>'1'</h3>
+                        <p>&nbsp;&nbsp;왼쪽->오른쪽으로 선택된 bb를 옮깁니다. shift는 반대 방향</p>
+                        <h3>'`'</h3>
+                        <p>&nbsp;&nbsp;왼쪽->오른쪽, t->r->b->l 순서로 side를 선택합니다. shift는 반대 방향</p>
+                        <h3>'방향키'</h3>
+                        <p>&nbsp;&nbsp;현재 선택된 side가 있으면 그 위치를 옮깁니다</p>
+                        <h3>'alt' + 마우스클릭</h3>
+                        <p>&nbsp;&nbsp;선택된 side가 있으면 그 위치를 옮기고<br>
+                           &nbsp;&nbsp;bb만 선택되어 있으면 가장 가까운 side를 옮겨줍니다.</p>
+                        <h3>'c'</h3>
+                        <p>&nbsp;&nbsp;bounding-box 추가 시작. 이후 lt/rb 두 번 클릭하면 bb가 추가</p>
+                        <h3>'x'</h3>
+                        <p>&nbsp;&nbsp;글자 보여줌/안보여줌 토글</p>
+
+                        <v-divider></v-divider>
+                        
+                    </v-card-text>
+
+                    <v-card-actions>
+                        <v-spacer></v-spacer>
+                        <v-btn color="blue darken-1" text @click="showHelp=false;setFocusToCanvas()">Close</v-btn>
+                    </v-card-actions>
+                </v-card>
+            </v-dialog>
         </v-row>
         <v-row align="start" justify="center" >
             <v-btn class="ma-1 pa-0" tile outlined color="blue-grey" small v-on:click="onCls00">가</v-btn>
@@ -288,6 +331,7 @@ export default {
             submitResultShow: false,
             submitResultColor: '',
 
+            showHelp: false,
         }
     },
     methods: {
