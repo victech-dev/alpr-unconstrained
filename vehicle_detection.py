@@ -5,17 +5,16 @@ import traceback
 import time
 from pathlib import Path
 
-import darknet.python.darknet as dn
+import src.darknet.darknet as dn
 
 from src.label import Label, lwrite
 from os.path import splitext, basename, isdir
 from os import makedirs
 from src.utils import crop_region, image_files_from_folder
-from darknet.python.darknet import detect
 
 def detect_lp_for_img(img_path, output_dir, model_net, model_meta, 
                       classes_on_interest, threshold, save_mode=True):
-    ret, _, elapsed = detect(
+    ret, _, elapsed = dn.detect(
         model_net,
         model_meta,
         str(img_path).encode("ascii"),

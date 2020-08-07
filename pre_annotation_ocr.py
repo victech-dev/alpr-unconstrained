@@ -9,7 +9,7 @@ from glob import glob
 import shutil
 from PIL import Image, ImageDraw, ImageFont
 
-import darknet.python.darknet as dn
+import src.darknet.darknet as dn
 
 from src.label import Label, Shape, readShapes
 from src.utils import image_files_from_folder, im2single, nms
