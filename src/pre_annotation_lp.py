@@ -11,11 +11,11 @@ import shutil
 from datetime import datetime as dt
 import datetime
 
-import src.darknet.darknet as dn
+import darknet.darknet as dn
 
-from src.label import Label, Shape, writeShapes
-from src.utils import image_files_from_folder, im2single, nms
-from src.keras_utils import load_model
+from base.label import Label, Shape, writeShapes
+from base.utils import image_files_from_folder, im2single, nms
+from base.keras_utils import load_model
 
 net_stride = 2**4
 

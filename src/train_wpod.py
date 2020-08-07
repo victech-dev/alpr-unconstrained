@@ -8,10 +8,10 @@ import tensorflow.keras as keras
 from tensorflow.keras.callbacks import ModelCheckpoint, TensorBoard, LearningRateScheduler
 import cv2
 
-from src.label import readShapes
-from src.keras_utils import save_model, load_model
-from src.sampler import augment_sample, labels2output_map
-from src.loss import loss
+from base.label import readShapes
+from base.keras_utils import save_model, load_model
+from base.sampler import augment_sample, labels2output_map
+from base.loss import loss
 
 data_dir_list = [
     "_train_wpod/data/data_kor_v1_done/*.txt",

@@ -6,12 +6,12 @@ import numpy as np
 import traceback
 import time
 
-from src.keras_utils import load_model
 from glob import glob
 from os.path import splitext, basename
-from src.utils import im2single
-from src.keras_utils import load_model, detect_lp
-from src.label import Shape, writeShapes
+from base.keras_utils import load_model
+from base.utils import im2single
+from base.keras_utils import load_model, detect_lp
+from base.label import Shape, writeShapes
 
 if __name__ == '__main__':
 

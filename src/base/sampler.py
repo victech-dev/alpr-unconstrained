@@ -2,9 +2,9 @@ import cv2
 import numpy as np
 import random
 
-from src.utils import im2single, getWH, hsv_transform, IOU_centre_and_dims
-from src.label import Label
-from src.projection_utils import perspective_transform, find_T_matrix, getRectPts
+from base.utils import im2single, getWH, hsv_transform, IOU_centre_and_dims
+from base.label import Label
+from base.projection_utils import perspective_transform, find_T_matrix, getRectPts
 
 def labels2output_map(label, lp_pts, dim, stride):
     # 7.75 when dim = 208 and stride = 16

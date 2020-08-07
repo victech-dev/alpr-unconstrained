@@ -7,7 +7,7 @@ import imgaug as ia
 import imgaug.augmenters as iaa
 from tqdm import tqdm
 
-from src.label import Label, Shape, writeShapes
+from base.label import Label, Shape, writeShapes
 
 ocr_kor_path = Path('data/ocr-kor')
 

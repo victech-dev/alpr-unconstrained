@@ -5,9 +5,9 @@ import tensorflow as tf
 
 from os.path import splitext
 
-from src.label import Label
-from src.utils import getWH, nms
-from src.projection_utils import getRectPts, find_T_matrix
+from base.label import Label
+from base.utils import getWH, nms
+from base.projection_utils import getRectPts, find_T_matrix
 
 class DLabel(Label):
     def __init__(self, cl, pts, prob):

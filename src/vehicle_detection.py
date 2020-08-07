@@ -4,13 +4,13 @@ import numpy as np
 import traceback
 import time
 from pathlib import Path
-
-import src.darknet.darknet as dn
-
-from src.label import Label, lwrite
-from os.path import splitext, basename, isdir
+from os.path import isdir
 from os import makedirs
-from src.utils import crop_region, image_files_from_folder
+
+import darknet.darknet as dn
+
+from base.label import Label, lwrite
+from base.utils import crop_region, image_files_from_folder
 
 def detect_lp_for_img(img_path, output_dir, model_net, model_meta, 
                       classes_on_interest, threshold, save_mode=True):

@@ -9,12 +9,12 @@ from glob import glob
 import shutil
 from PIL import Image, ImageDraw, ImageFont
 
-import src.darknet.darknet as dn
+import darknet.darknet as dn
 
-from src.label import Label, Shape, readShapes
-from src.utils import image_files_from_folder, im2single, nms
-from src.keras_utils import load_model
-from src.darknet_utils import read_labels, write_labels
+from base.label import Label, Shape, readShapes
+from base.utils import image_files_from_folder, im2single, nms
+from base.keras_utils import load_model
+from base.darknet_utils import read_labels, write_labels
 
 def show(img):
     cv2.imshow("img", img)
