@@ -48,7 +48,6 @@ def resize_imgs(input_dir, output_dir):
         img_resized_path = Path(output_dir) / (output_prefix + str(i).zfill(4) + img_path.suffix)
         cv2.imwrite(str(img_resized_path), img_resized, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
 
-
 class LabelEx(Label):
     def __init__(self, cl, pts, prob, pts_mn):
         self.pts = pts
