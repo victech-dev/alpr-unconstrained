@@ -7,7 +7,7 @@ import imgaug as ia
 import imgaug.augmenters as iaa
 from tqdm import tqdm
 
-from base.label import Label, Shape, writeShapes
+from base.label import Label, Shape, write_shapes
 
 ocr_kor_path = Path('data/ocr-kor')
 
@@ -388,7 +388,7 @@ def write_darknet_label(path, shapes):
     if len(shapes):
         with open(path, 'w') as fp:
             for shape in shapes:
-                if shape.isValid():
+                if shape.is_valid():
                     pts = shape.pts
                     l, t = np.amin(pts, 1)
                     r, b = np.amax(pts, 1)
@@ -402,7 +402,7 @@ def gen_data(base_path, idx):
     image, shapes = gen_lp_image(random_template(), idx)
     base_path = Path(base_path)
     cv2.imwrite(str(base_path / (str(idx).zfill(5) + ".jpg")), image)
-    writeShapes(str(base_path / (str(idx).zfill(5) + "_shapes.txt")), shapes)
+    write_shapes(str(base_path / (str(idx).zfill(5) + "_shapes.txt")), shapes)
     write_darknet_label(str(base_path / (str(idx).zfill(5) + ".txt")), shapes)
 
 def gen_dataset(base_path, cnt=20):

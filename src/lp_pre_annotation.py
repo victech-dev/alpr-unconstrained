@@ -13,7 +13,7 @@ import datetime
 
 import darknet.darknet as dn
 
-from base.label import Label, Shape, writeShapes
+from base.label import Label, Shape, write_shapes
 from base.utils import image_files_from_folder, im2single, nms
 from base.keras_utils import load_model
 
@@ -246,7 +246,7 @@ def pre_annotate(input_dir, output_dir):
             break
         elif key == 32:
             shutil.copy(str(img_path), str(output_img_path))
-            writeShapes(str(output_txt_path), shapes)
+            write_shapes(str(output_txt_path), shapes)
         else:
             print("    -> ignored")
 

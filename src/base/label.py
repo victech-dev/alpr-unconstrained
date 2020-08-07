@@ -109,7 +109,7 @@ class Shape():
         self.max_sides = max_sides
         self.text = text
 
-    def isValid(self):
+    def is_valid(self):
         return self.pts.shape[1] > 2
 
     def write(self, fp):
@@ -127,7 +127,7 @@ class Shape():
         self.pts = np.array([float(value) for value in values]).reshape((2, ss))
         self.text = text
 
-def readShapes(path, obj_type=Shape):
+def read_shapes(path, obj_type=Shape):
     shapes = []
     with open(path) as fp:
         for line in fp:
@@ -136,10 +136,10 @@ def readShapes(path, obj_type=Shape):
             shapes.append(shape)
     return shapes
 
-def writeShapes(path, shapes):
+def write_shapes(path, shapes):
     if len(shapes):
         with open(path, 'w') as fp:
             for shape in shapes:
-                if shape.isValid():
+                if shape.is_valid():
                     shape.write(fp)
 

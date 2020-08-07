@@ -11,7 +11,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 import darknet.darknet as dn
 
-from base.label import Label, Shape, readShapes
+from base.label import Label, Shape, read_shapes
 from base.utils import image_files_from_folder, im2single, nms
 from base.keras_utils import load_model
 from base.darknet_utils import read_labels, write_labels
@@ -55,7 +55,7 @@ def unwarp_wpodnet_dataset_from_label(input_dir, output_dir):
         img = cv2.imread(str(img_path))
 
         label_path = input_dir / (img_path.stem + ".txt")
-        labels = readShapes(str(label_path))
+        labels = read_shapes(str(label_path))
 
         for i, label in enumerate(labels):
             w, h = img.shape[1], img.shape[0]

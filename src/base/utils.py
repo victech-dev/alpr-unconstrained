@@ -55,33 +55,6 @@ def image_files_from_folder(folder, upper=True):
 def is_inside(ltest, lref):
     return (ltest.tl() >= lref.tl()).all() and (ltest.br() <= lref.br()).all()
 
-def crop_region(I, label, bg=0.5):
-    wh = np.array(I.shape[1::-1])
-
-    ch = I.shape[2] if len(I.shape) == 3 else 1
-    tl = np.floor(label.tl() * wh).astype(int)
-    br = np.ceil(label.br() * wh).astype(int)
-    outwh = br - tl
-
-    if np.prod(outwh) == 0.0:
-        return None
-
-    outsize = (outwh[1], outwh[0], ch) if ch > 1 else (outwh[1], outwh[0])
-    if (np.array(outsize) < 0).any():
-        pause()
-    Iout = np.zeros(outsize, dtype=I.dtype) + bg
-
-    offset = np.minimum(tl, 0) * (-1)
-    tl = np.maximum(tl, 0)
-    br = np.minimum(br, wh)
-    wh = br - tl
-
-    Iout[offset[1] : (offset[1] + wh[1]), offset[0] : (offset[0] + wh[0])] = I[
-        tl[1] : br[1], tl[0] : br[0]
-    ]
-
-    return Iout
-
 def hsv_transform(I, hsv_modifier):
     I = cv2.cvtColor(I, cv2.COLOR_BGR2HSV)
     I = I + hsv_modifier

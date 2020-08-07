@@ -8,7 +8,7 @@ import tensorflow.keras as keras
 from tensorflow.keras.callbacks import ModelCheckpoint, TensorBoard, LearningRateScheduler
 import cv2
 
-from base.label import readShapes
+from base.label import read_shapes
 from base.keras_utils import save_model, load_model
 from base.sampler import augment_sample, labels2output_map
 from base.loss import loss
@@ -52,7 +52,7 @@ def load_network(model_path, input_dim):
 def load_labels(label_file):
     label_file = Path(bytes.decode(label_file.numpy()))
     image_file = label_file.parent / (label_file.stem + ".jpg")
-    shapes = readShapes(str(label_file))
+    shapes = read_shapes(str(label_file))
     # TODO flatten to multiple shape 
     return tf.constant(str(image_file)), shapes[0].pts # pts.shape=(2,4)
 

@@ -11,7 +11,7 @@ from os.path import splitext, basename
 from base.keras_utils import load_model
 from base.utils import im2single
 from base.keras_utils import load_model, detect_lp
-from base.label import Shape, writeShapes
+from base.label import Shape, write_shapes
 
 if __name__ == '__main__':
 
@@ -68,7 +68,7 @@ if __name__ == '__main__':
                 s = Shape(Llp[0].pts)
 
                 cv2.imwrite('%s/%s_unwarp.png' % (output_dir, bname), Ilp * 255.)
-                writeShapes('%s/%s_unwarp.txt' % (output_dir, bname), [s])
+                write_shapes('%s/%s_unwarp.txt' % (output_dir, bname), [s])
 
     except:
         traceback.print_exc()
