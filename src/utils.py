@@ -21,14 +21,11 @@ def IOU(tl1, br1, tl2, br2):
     union_area = area1 + area2 - intersection_area
     return intersection_area / union_area
 
-
 def IOU_labels(l1, l2):
     return IOU(l1.tl(), l1.br(), l2.tl(), l2.br())
 
-
 def IOU_centre_and_dims(cc1, wh1, cc2, wh2):
     return IOU(cc1 - wh1 / 2.0, cc1 + wh1 / 2.0, cc2 - wh2 / 2.0, cc2 + wh2 / 2.0)
-
 
 def nms(Labels, iou_threshold=0.5):
     SelectedLabels = []
@@ -46,7 +43,6 @@ def nms(Labels, iou_threshold=0.5):
 
     return SelectedLabels
 
-
 def image_files_from_folder(folder, upper=True):
     extensions = ["jpg", "jpeg", "png"]
     img_files = []
@@ -56,12 +52,10 @@ def image_files_from_folder(folder, upper=True):
             img_files += glob("%s/*.%s" % (folder, ext.upper()))
     return img_files
 
-
 def is_inside(ltest, lref):
     return (ltest.tl() >= lref.tl()).all() and (ltest.br() <= lref.br()).all()
 
 def crop_region(I, label, bg=0.5):
-
     wh = np.array(I.shape[1::-1])
 
     ch = I.shape[2] if len(I.shape) == 3 else 1
@@ -88,26 +82,10 @@ def crop_region(I, label, bg=0.5):
 
     return Iout
 
-
 def hsv_transform(I, hsv_modifier):
     I = cv2.cvtColor(I, cv2.COLOR_BGR2HSV)
     I = I + hsv_modifier
     return cv2.cvtColor(I, cv2.COLOR_HSV2BGR)
-
-
-def IOU(tl1, br1, tl2, br2):
-    wh1, wh2 = br1 - tl1, br2 - tl2
-    assert (wh1 >= 0.0).all() and (wh2 >= 0.0).all()
-
-    intersection_wh = np.maximum(np.minimum(br1, br2) - np.maximum(tl1, tl2), 0.0)
-    intersection_area = np.prod(intersection_wh)
-    area1, area2 = (np.prod(wh1), np.prod(wh2))
-    union_area = area1 + area2 - intersection_area
-    return intersection_area / union_area
-
-
-def IOU_centre_and_dims(cc1, wh1, cc2, wh2):
-    return IOU(cc1 - wh1 / 2.0, cc1 + wh1 / 2.0, cc2 - wh2 / 2.0, cc2 + wh2 / 2.0)
 
 def show(I, wname="Display"):
     cv2.imshow(wname, I)

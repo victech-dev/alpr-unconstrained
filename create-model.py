@@ -8,7 +8,6 @@ from keras.applications.mobilenet import MobileNet
 
 from src.keras_utils import save_model
 
-
 def res_block(x,sz,filter_sz=3,in_conv_size=1):
 	xi  = x
 	for i in range(in_conv_size):
@@ -31,7 +30,6 @@ def end_block(x):
 	xprobs    = Conv2D(2, 3, activation='softmax', padding='same')(x)
 	xbbox     = Conv2D(6, 3, activation='linear' , padding='same')(x)
 	return Concatenate(3)([xprobs,xbbox])
-
 
 def create_model_eccv():
 	
@@ -60,7 +58,6 @@ def create_model_eccv():
 	x = end_block(x)
 
 	return Model(inputs=input_layer,outputs=x)
-
 
 # Model not converging...
 def create_model_mobnet():

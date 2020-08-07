@@ -63,7 +63,6 @@ class Label:
     def set_prob(self, prob):
         self.__prob = prob
 
-
 def lread(file_path, label_type=Label):
     if not isfile(file_path):
         return []

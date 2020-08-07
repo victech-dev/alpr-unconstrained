@@ -9,14 +9,12 @@ from src.label import Label
 from src.utils import getWH, nms
 from src.projection_utils import getRectPts, find_T_matrix
 
-
 class DLabel(Label):
     def __init__(self, cl, pts, prob):
         self.pts = pts
         tl = np.amin(pts, 1)
         br = np.amax(pts, 1)
         Label.__init__(self, cl, tl, br, prob)
-
 
 def save_model(model, path, verbose=0):
     path = splitext(path)[0]
@@ -25,7 +23,6 @@ def save_model(model, path, verbose=0):
         json_file.write(model_json)
     model.save_weights('%s.h5' % path)
     if verbose: print('Saved to %s' % path)
-
 
 def load_model(path, custom_objects={}, verbose=0):
     # import tensorflow as tf
@@ -40,9 +37,7 @@ def load_model(path, custom_objects={}, verbose=0):
     if verbose: print('Loaded from %s' % path)
     return model
 
-
 def reconstruct(Iorig, I, Y, out_size, threshold=.9):
-
     net_stride = 2**4
     side = ((208. + 40.) / 2.) / net_stride  # 7.75
 
@@ -77,7 +72,6 @@ def reconstruct(Iorig, I, Y, out_size, threshold=.9):
         pts = np.array(A * base(vxx, vyy))  #*alpha
         pts_MN_center_mn = pts * side
         pts_MN = pts_MN_center_mn + mn.reshape((2, 1))
-
         pts_prop = pts_MN / MN.reshape((2, 1))
 
         labels.append(DLabel(0, pts_prop, prob))
@@ -88,7 +82,6 @@ def reconstruct(Iorig, I, Y, out_size, threshold=.9):
     if len(final_labels):
         final_labels.sort(key=lambda x: x.prob(), reverse=True)
         for i, label in enumerate(final_labels):
-
             t_ptsh = getRectPts(0, 0, out_size[0], out_size[1])
             ptsh = np.concatenate((label.pts * getWH(Iorig.shape).reshape(
                 (2, 1)), np.ones((1, 4))))

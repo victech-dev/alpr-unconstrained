@@ -9,14 +9,12 @@ def logloss(Ptrue, Pred, szs, eps=10e-10):
     Pred = tf.reduce_sum(Pred, 1)
     return Pred
 
-
 def l1(true, pred, szs):
     b, h, w, ch = szs
     res = tf.reshape(true - pred, (b, h * w * ch))
     res = tf.abs(res)
     res = tf.reduce_sum(res, 1)
     return res
-
 
 def loss(Ytrue, Ypred):
     b = tf.shape(Ytrue)[0]
