@@ -113,7 +113,14 @@ router.post('/', async function(req, res, next) {
 
     let idx = jpgFiles.indexOf(jpgFile)
     if (idx < 0) {
-        res.sendStatus(404)
+        let outTxtFile = changeExt(jpgFile, ".txt")
+        if (fs.existsSync(outTxtFile)) {
+            // resubmit
+            writeLabels(outTxtFile, req.body.labels)
+            res.sendStatus(200)
+        } else {
+            res.sendStatus(404)
+        }
     } else {
         let outTxtFile = changeExt(jpgFile, ".txt")
         try {
@@ -121,7 +128,7 @@ router.post('/', async function(req, res, next) {
             idx = jpgFiles.indexOf(jpgFile)
             if (idx > -1)
                 jpgFiles.splice(idx, 1)
-            res.sendStatus(200)
+            res.sendStatus(201)
         }
         catch (e) {
             res.sendStatus(400)

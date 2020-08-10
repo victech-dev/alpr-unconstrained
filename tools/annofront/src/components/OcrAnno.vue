@@ -36,22 +36,17 @@
                         </p>
                         <v-divider></v-divider>
                         <br>
-                        <h3>마우스 클릭</h3>
-                        <p>&nbsp;&nbsp;그 곳의 bb를 선택</p>
-                        <h3>'1'</h3>
-                        <p>&nbsp;&nbsp;왼쪽->오른쪽으로 선택된 bb를 옮깁니다. shift는 반대 방향</p>
-                        <h3>'`'</h3>
-                        <p>&nbsp;&nbsp;왼쪽->오른쪽, t->r->b->l 순서로 side를 선택합니다. shift는 반대 방향</p>
-                        <h3>'방향키'</h3>
-                        <p>&nbsp;&nbsp;현재 선택된 side가 있으면 그 위치를 옮깁니다</p>
-                        <h3>'alt' + 마우스클릭</h3>
-                        <p>&nbsp;&nbsp;선택된 side가 있으면 그 위치를 옮기고<br>
-                           &nbsp;&nbsp;bb만 선택되어 있으면 가장 가까운 side를 옮겨줍니다.</p>
-                        <h3>'c'</h3>
-                        <p>&nbsp;&nbsp;bounding-box 추가 시작. 이후 lt/rb 두 번 클릭하면 bb가 추가</p>
-                        <h3>'x'</h3>
-                        <p>&nbsp;&nbsp;글자 보여줌/안보여줌 토글</p>
-
+                        <ul>
+                            <li><b>BB 선택</b> : label 안쪽 영역을 마우스 클릭. 선택되면 색이 노란색으로 바뀝니다.</li>
+                            <li><b>BB 선택취소</b> : 'Esc' 키 혹은 다시 클릭</li>
+                            <li><b>BB 선택 (이동)</b> : '1' 키를 누르면 왼쪽->오른쪽으로 선택된 bb를 이동. shift는 반대 방향</li>
+                            <li><b>Side 선택 (이동)</b> : '`' 키를 누르면 왼쪽->오른쪽, t->r->b->l 순서로 선택된 side를 이동. shift는 반대 방향</li>
+                            <li><b>Side 위치 조정</b> : 화살표 키들로 현재 선택된 side의 위치를 조정 혹은 <b>우</b>클릭
+                            <li><b>label 추가</b> : 미선택 상태에서 c 키를 누르고 lt/rb 두 번 <b>우</b>클릭</li>
+                            <li><b>label 삭제</b> : 선택 상태에서 d 키</li>
+                            <li><b>글자 토글</b> : 'x' 키 누르면 bb의 글자가 토글됨</li>
+                        </ul>
+                        <br>
                         <v-divider></v-divider>
                         
                     </v-card-text>
@@ -153,14 +148,15 @@
                 v-bind:width="width" 
                 v-bind:height="height" 
                 @keydown="onKeyDown" 
-                @click="onMouseLClick"/>
+                @click="onMouseLClick"
+                @contextmenu.prevent="onMouseRClick"/>
         </v-row>
 
         <v-snackbar
             v-model="submitResultShow"
             :color="submitResultColor"
             timeout=6000
-            bottom=true
+            :bottom="true"
         >
             {{ submitResult }}
             <v-btn dark text @click="submitResultShow = false">
@@ -401,7 +397,6 @@ export default {
                     vm.showSubmitResult(response.status)
                 })
                 .catch(function (error) {
-                    console.log(error.response)
                     vm.showSubmitResult(error.response.status)
                 });
         },
@@ -413,7 +408,6 @@ export default {
 
         showSubmitResult(code) {
             if (code === 200) {
-
                 this.submitResultColor = 'success'
                 this.submitResult = "OK ( updated again!)"
                 this.submitResultShow = true
@@ -456,10 +450,34 @@ export default {
         },
 
         onMouseLClick(e) {
-            console.log("onMouseLClick", e)
+            //console.log("onMouseLClick", e)
 
             var pt = this.toImageCoord(e.offsetX, e.offsetY)
 
+            if (this.isLabelCreating === true) {
+                return
+            }
+
+            if (this.labels.length > 0) {
+                // select including label
+                this.curLabel = null
+                this.curSide = null
+                for (var i = 0; i < this.labels.length; i++) {
+                    if (this.labels[i].include(pt) == true) {
+                        this.curLabel = this.labels[i]
+                        break
+                    }
+                }
+                this.updateView()
+                return
+            }
+        },
+
+        onMouseRClick(e) {
+            //console.log("onMouseLClick", e)
+
+            var pt = this.toImageCoord(e.offsetX, e.offsetY)
+            
             if (this.isLabelCreating === true) {
                 var cl = this.creatingLabel
                 cl.push(pt)
@@ -480,41 +498,25 @@ export default {
                 return
             }
 
-            if (e.altKey === true) {
-                if (this.curLabel != null) {
-                    if (this.curSide != null) {
-                        if (this.curSide == 0) { this.curLabel.tset(pt.y) }
-                        if (this.curSide == 1) { this.curLabel.rset(pt.x) }
-                        if (this.curSide == 2) { this.curLabel.bset(pt.y) }
-                        if (this.curSide == 3) { this.curLabel.lset(pt.x) }
-                    }
-                    else {
-                        let dd = [
-                            Math.abs(pt.y - this.curLabel.t()),
-                            Math.abs(pt.x - this.curLabel.r()),
-                            Math.abs(pt.y - this.curLabel.b()),
-                            Math.abs(pt.x - this.curLabel.l())
-                        ]
-                        let i = dd.indexOf(Math.min(...dd))
-                        if (i == 0) { this.curLabel.tset(pt.y, 20) }
-                        if (i == 1) { this.curLabel.rset(pt.x, 20) }
-                        if (i == 2) { this.curLabel.bset(pt.y, 20) }
-                        if (i == 3) { this.curLabel.lset(pt.x, 20) }
-                    }
-                    this.updateView()
+            if (this.curLabel != null) {
+                if (this.curSide != null) {
+                    if (this.curSide == 0) { this.curLabel.tset(pt.y) }
+                    if (this.curSide == 1) { this.curLabel.rset(pt.x) }
+                    if (this.curSide == 2) { this.curLabel.bset(pt.y) }
+                    if (this.curSide == 3) { this.curLabel.lset(pt.x) }
                 }
-                return
-            }
-
-            if (this.labels.length > 0) {
-                // select including label
-                this.curLabel = null
-                this.curSide = null
-                for (var i = 0; i < this.labels.length; i++) {
-                    if (this.labels[i].include(pt) == true) {
-                        this.curLabel = this.labels[i]
-                        break
-                    }
+                else {
+                    let dd = [
+                        Math.abs(pt.y - this.curLabel.t()),
+                        Math.abs(pt.x - this.curLabel.r()),
+                        Math.abs(pt.y - this.curLabel.b()),
+                        Math.abs(pt.x - this.curLabel.l())
+                    ]
+                    let i = dd.indexOf(Math.min(...dd))
+                    if (i == 0) { this.curLabel.tset(pt.y, 20) }
+                    if (i == 1) { this.curLabel.rset(pt.x, 20) }
+                    if (i == 2) { this.curLabel.bset(pt.y, 20) }
+                    if (i == 3) { this.curLabel.lset(pt.x, 20) }
                 }
                 this.updateView()
                 return
@@ -586,7 +588,20 @@ export default {
                 this.updateView()
                 return
             }
-
+            if (e.key == 's') {
+                if (e.ctrlKey == true) {
+                    this.onSubmit()
+                    e.preventDefault();
+                    return
+                }
+            }
+            if (e.key == 'n') {
+                if (e.ctrlKey == true) {
+                    this.onStart()
+                    e.preventDefault();
+                    return
+                }
+            }
             if (e.key == 'c') {
                 // label creating
                 this.isLabelCreating = true
@@ -699,7 +714,6 @@ export default {
                     0, 0, this.width, this.height)
                 
                 for (let label of this.labels) {
-                    //console.log("label:", label)
                     let labelLineColor = (label === this.curLabel ? "yellow" : "red")
                     let labelCurSide = (label === this.curLabel ? this.curSide : null)
                     this.drawLabel(label.pts(), this.getClassChar(label.cls), labelCurSide, labelLineColor)

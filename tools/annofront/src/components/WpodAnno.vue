@@ -1,17 +1,92 @@
 <template>
-    <div class="wpodanno">
-        <div>
-            <button class="pure-button" @click="onStart">Start</button>--
-            <button class="pure-button" @click="onSubmit">Submit</button>--
+    <v-container >
+        <v-row align="center" justify="center" >
+            <v-col cols=6>
+                <v-row dense align="center" justify="end" >
+                    <v-btn class="ma-2" tile outlined color="success" v-on:click="showHelp=true">Help</v-btn>
+                    <v-btn class="ma-2" tile dark color="indigo" v-on:click="onStart" >Start</v-btn>
+                    <v-btn class="ma-2" tile dark color="indigo" v-on:click="onSubmit">Submit</v-btn>
+                </v-row>
+            </v-col>
+            <v-col cols=6>
+                <v-row dense align="center" justify="start" >
+                    <h4>
+                        file : {{ annoData === null ? "none" : annoData.file }}, 
+                        wh=({{ image === null ? 0 : image.width }}, {{ image === null ? 0 : image.height }})
+                    </h4>
+                </v-row>
+            </v-col>
+
+            <v-dialog
+                v-model="showHelp"
+                max-width="800"
+                >
+                <v-card>
+                    <v-card-title class="headline">
+                        Wpod 데이터 편집 가이드
+                    </v-card-title>
+
+                    <v-card-text>
+                        <v-divider></v-divider>
+                        <br>
+                        <p>
+                            'START' 버튼으로 이미지 한 장을 받아옵니다.<br>
+                            번호판에 대해서 사각형를 라벨링 해야 합니다.<br>
+                            이미 적당한 label들이 존재하고, 요 점들을 적절히 옮겨주시면 됩니다.<br>
+                            <b>점의 기준은 숫자 영역을 감싸고 있는 가장 안쪽의 4각형 영역입니다.</b><br>
+                            left-top이 첫번째 점(파란 점)이 되어야 하고 시계 방향 순서입니다.<br>
+                            이후 'SUBMIT' 으로 제출합니다. <b>(여러번 submit 가능!!)</b>
+                        </p>
+                        <v-divider></v-divider>
+                        <br>
+                        <ul>
+                            <li><b>화면 확대</b> : 마우스로 적당히 드래그앤드랍</li>
+                            <li><b>화면 확대 취소</b> : '`' 키. (1 왼쪽의 backquote 키)</li>
+                            <li><b>label 선택</b> : label 안쪽 영역을 클릭. 선택되면 색이 노란색으로 바뀝니다.</li>
+                            <li><b>label 선택취소</b> : Esc 키 혹은 다시 클릭</li>
+                            <li><b>점 옮기기</b> : 선택된 상태에서 <b>우</b>클릭하면 현재 가장 가까운 점이 클릭한 위치로 올겨집니다.</li>
+                            <li><b>label 추가</b> : 미선택 상태에서 c 키를 누르고 네 점을 <b>우</b>클릭</li>
+                            <li><b>label 삭제</b> : 선택 상태에서 d 키</li>
+                        </ul>
+                        <br>
+                        <v-divider></v-divider>
+                        
+                    </v-card-text>
+
+                    <v-card-actions>
+                        <v-spacer></v-spacer>
+                        <v-btn color="blue darken-1" text @click="showHelp=false;setFocusToCanvas()">Close</v-btn>
+                    </v-card-actions>
+                </v-card>
+            </v-dialog>
+
+        </v-row>
+
+        <v-row align="start" justify="center">
+            <canvas
+                id="imgCanvas" 
+                tabindex="0" 
+                v-bind:width="width" 
+                v-bind:height="height" 
+                @keydown="onKeyDown" 
+                @mousedown="onMouseDown" 
+                @mouseup="onMouseUp"
+                @click="onMouseClick"
+                @contextmenu.prevent="onMouseRClick"/>
+        </v-row>
+
+        <v-snackbar
+            v-model="submitResultShow"
+            :color="submitResultColor"
+            timeout=6000
+            :bottom="true"
+        >
             {{ submitResult }}
-        </div>
-        <h5> file : {{ annoData === null ? "none" : annoData.file }}, 
-            wh=({{ image === null ? 0 : image.width }}, {{ image === null ? 0 : image.height }})
-        </h5>
-        <canvas id="imgCanvas" tabindex="0" 
-            v-bind:width="width" v-bind:height="height" @keydown="onKeyDown"
-            @mousedown="onMouseDown" @mouseup="onMouseUp" @click="onMouseClick" @dblclick="onMouseDbClick" />
-    </div>
+            <v-btn dark text @click="submitResultShow = false">
+            Close
+            </v-btn>
+        </v-snackbar>
+    </v-container>
 </template>
 
 <script>
@@ -21,7 +96,6 @@ function clamp(num, min, max) {
 }
 
 function loadImage(url) {
-    console.log(url)
     return new Promise(r => { 
         let i = new Image(); 
         i.onload = (() => r(i)); 
@@ -111,7 +185,6 @@ export default {
         //this.onStart
     },
     mounted() {
-        console.log("mounted")
         var c = document.getElementById("imgCanvas")
         this.canvas = c.getContext('2d')
         this.canvas.imageSmoothingEnabled = false
@@ -137,10 +210,16 @@ export default {
             mx: 0,
             my: 0,
 
+            ignoreNextClick: false,
+
             isLabelCreating: false,
             creatingLabel: [],
 
-            submitResult: ""
+            submitResult: "",
+            submitResultShow: false,
+            submitResultColor: '',
+
+            showHelp: false,
         }
     },
     methods: {
@@ -152,6 +231,7 @@ export default {
             this.createLabels()
             this.setViewRect(0, 0, image.width, image.height)
             this.updateView()
+            this.setFocusToCanvas()
         },
 
         createLabels() {
@@ -165,7 +245,6 @@ export default {
                 let pts = []
                 for (let i = 0; i < label.length; ++i) {
                     pts.push(new Point(label[i].x * w, label[i].y * h))
-                    //console.log(label[i].x * w, label[i].y * h)
                 }
                 this.labels.push(new Label(pts[0], pts[1], pts[2], pts[3]))
             }
@@ -190,7 +269,7 @@ export default {
             return labelsJson
         },
 
-        onSubmit() {
+        submit() {
             if (this.isLabelCreating === true ||
                 this.isMouseProcessing === true) {
                 alert("Cannot now!")
@@ -210,26 +289,39 @@ export default {
             var vm = this
             this.$http.post('/wpodannos', postData)
                 .then(function (response) {
-                    console.log(response);
                     vm.showSubmitResult(response.status)
                 })
                 .catch(function (error) {
-                    console.log(error.response);
                     vm.showSubmitResult(error.response.status)
                 });
         },
 
+        onSubmit() {
+            this.submit()
+            this.setFocusToCanvas()
+        },
+
         showSubmitResult(code) {
             if (code === 200) {
-                this.submitResult = "Success"
+                this.submitResultColor = 'success'
+                this.submitResult = "OK ( updated again!)"
+                this.submitResultShow = true
+            }
+            else if (code === 201) {
+                this.submitResultColor = 'success'
+                this.submitResult = "OK ( created )"
+                this.submitResultShow = true
             }
             else if (code === 404) {
+                this.submitResultColor = 'error'
                 this.submitResult = "Fail (Already submitted)"
+                this.submitResultShow = true
             }
             else {
+                this.submitResultColor = 'error'
                 this.submitResult = "Fail (code=" + code.toString() + ")"
+                this.submitResultShow = true
             }
-            setTimeout(() => { this.submitResult = "" }, 5000);
         },
 
         // canvas coordinate -> image coordinate
@@ -271,38 +363,22 @@ export default {
                     this.setViewRect(pt0.x, pt0.y, pt1.x - pt0.x, pt1.y - pt0.y)
                     this.scale = this.image.width / (pt1.x - pt0.x)
                     this.updateView()
+
+                    this.ignoreNextClick = true
                 }
             }
+
+            // TODO click event 무시
         },
 
         onMouseClick(e) {
             //console.log("onMouseClick", e)
 
-            var pt = this.toImageCoord(e.offsetX, e.offsetY)
-
-            if (this.isLabelCreating === true) {
-                var l = this.creatingLabel
-                l.push(pt)
-                if (this.creatingLabel.length == 4) {
-                    this.labels.push(new Label(l[0], l[1], l[2], l[3]))
-                    this.isLabelCreating = false
-                    this.creatingLabel = []
-                }
-                this.updateView()
+            if (this.ignoreNextClick) {
+                this.ignoreNextClick = false
                 return
             }
 
-            if (this.curLabel != null) {
-                var nearest = this.curLabel.fineNearest(pt)
-                if (nearest[0].dist(pt) < 100) {
-                    nearest[0].set(pt.x, pt.y)
-                    this.updateView()
-                }
-                return
-            }
-        },
-
-        onMouseDbClick(e) {
             var pt = this.toImageCoord(e.offsetX, e.offsetY)
 
             if (this.isLabelCreating === true) {
@@ -324,6 +400,33 @@ export default {
                     }
                 }
                 this.updateView()
+                return
+            }
+        },
+
+        onMouseRClick(e) {
+            //console.log("onMouseLClick", e)
+
+            var pt = this.toImageCoord(e.offsetX, e.offsetY)
+
+            if (this.isLabelCreating === true) {
+                var l = this.creatingLabel
+                l.push(pt)
+                if (this.creatingLabel.length == 4) {
+                    this.labels.push(new Label(l[0], l[1], l[2], l[3]))
+                    this.isLabelCreating = false
+                    this.creatingLabel = []
+                }
+                this.updateView()
+                return
+            }
+
+            if (this.curLabel != null) {
+                var nearest = this.curLabel.fineNearest(pt)
+                if (nearest[0].dist(pt) < 100) {
+                    nearest[0].set(pt.x, pt.y)
+                    this.updateView()
+                }
                 return
             }
         },
@@ -356,8 +459,16 @@ export default {
 
             if (e.key == 's') {
                 if (e.ctrlKey == true) {
-                    this.scale -= e.altKey ? 0.1 : 0.5
-                    this.updateView()
+                    this.onSubmit()
+                    e.preventDefault();
+                    return
+                }
+            }
+            if (e.key == 'n') {
+                if (e.ctrlKey == true) {
+                    this.onStart()
+                    e.preventDefault();
+                    return
                 }
             }
             if (e.key == '`') {
@@ -365,11 +476,13 @@ export default {
                 this.scale = 1
                 this.setViewRect(0, 0, this.image.width, this.image.height)
                 this.updateView()
+                return
             }
             if (e.key == 'c') {
                 // label creating
                 this.isLabelCreating = true
                 this.creatingLabel = []
+                return
             }
             if (e.key == 'd') {
                 // delete selected label
@@ -379,6 +492,7 @@ export default {
                         this.labels.splice(idx, 1)
                         this.updateView()
                     }
+                    return
                 }
             }
         },
@@ -425,7 +539,6 @@ export default {
                     0, 0, this.width, this.height)
                 
                 for (let label of this.labels) {
-                    //console.log("label:", label)
                     var labelLineColor = (label === this.curLabel ? "yellow" : "red")
                     this.drawLabel(label.pts(), labelLineColor)
                 }
@@ -441,7 +554,11 @@ export default {
             this.viewRect.t = t;
             this.viewRect.w = w;
             this.viewRect.h = h;
-        }
+        },
+
+        setFocusToCanvas() {
+            document.getElementById("imgCanvas").focus()
+        },
     },
 }
 </script>
