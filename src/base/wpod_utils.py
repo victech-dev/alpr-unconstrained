@@ -9,7 +9,10 @@ from base.label import Label
 from base.utils import get_wh, nms, show, draw_label
 from base.projection_utils import get_rect_ptsh, find_T_matrix
 
-unwarp_margin = 8.
+wpod_input_dim = 208 # same as training input dim
+wpod_net_stride = 2**4 # decided by pooling layer count
+ocr_unwarp_margin = 8.
+ocr_input_wh = (288, 96)
 
 def save_model(model, path, verbose=0):
     path = splitext(path)[0]
@@ -88,16 +91,14 @@ def detect_lp(wpod_net_fn, image, input_dim, net_stride, out_wh, threshold):
 
     out_label, out_image = reconstruct(
         image, np.array([w, h]), net_stride, infer_ret,
-        out_wh, unwarp_margin, threshold)
+        out_wh, ocr_unwarp_margin, threshold)
     confidence = np.max(infer_ret[:,:,:1])
     return out_label, out_image, confidence
 
 def detect_wpod(wpod_net_fn, image, threshold):
-    input_dim = 208 # same as training input dim
-    net_stride = 2**4 # decided by pooling layer count
-    out_wh = (288, 96) # same as ocr input idm
-    out_label, out_image, confidence = detect_lp(wpod_net_fn, image, input_dim, net_stride, out_wh, threshold)
-
+    out_label, out_image, confidence = detect_lp(
+        wpod_net_fn, image, wpod_input_dim, wpod_net_stride,
+        ocr_input_wh, threshold)
     # out_label : np.array, shape=(2, 4)
     return out_label, out_image, confidence
 

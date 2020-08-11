@@ -14,6 +14,7 @@ import darknet.darknet as dn
 from base.label import read_shapes
 from base.utils import image_files_from_folder, show
 from base.darknet_utils import write_labels, load_ocr_network, detect_bb
+from base_wpod_utils import ocr_unwarp_margin, ocr_input_wh
 
 def unwarp_wpodnet_dataset_from_label(input_dir, output_dir):
     input_dir = Path(input_dir)
@@ -33,14 +34,13 @@ def unwarp_wpodnet_dataset_from_label(input_dir, output_dir):
         for i, label in enumerate(labels):
             w, h = image.shape[1], image.shape[0]
             pts0 = np.multiply(label.pts.T, (w, h)).astype(np.float32)
-            margin = 8.
-            dl, dr = 0. + margin, 288. - margin
-            dt, db = 0. + margin, 96. - margin
+            dl, dr = 0. + ocr_unwarp_margin, ocr_input_wh[0]. - ocr_unwarp_margin
+            dt, db = 0. + ocr_unwarp_margin, ocr_input_wh[1]. - ocr_unwarp_margin
             pts1 = np.array([ [dl, dt], [dr, dt], [dr, db], [dl, db] ]).astype(np.float32)
 
             #print(pts0.dtype, pts1.dtype)
             mat = cv2.getPerspectiveTransform(pts0, pts1)
-            img_unwarp = cv2.warpPerspective(image, mat, (288, 96))
+            img_unwarp = cv2.warpPerspective(image, mat, ocr_input_wh)
 
             output_file_name = image_path.stem + "_" + str(i) + ".jpg"
             img_unwarp_path = output_dir / output_file_name
