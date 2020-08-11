@@ -18,10 +18,10 @@ def find_T_matrix(pts, t_pts):
     H = V[-1, :].reshape((3, 3))
     return H
 
-def getRectPts(tlx, tly, brx, bry):
+def get_rect_ptsh(l, t, r, b):
     return np.matrix(
-        [[tlx, brx, brx, tlx], 
-         [tly, tly, bry, bry], 
+        [[l, r, r, l], 
+         [t, t, b, b], 
          [1., 1., 1., 1.]],
         dtype=float)
 

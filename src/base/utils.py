@@ -8,7 +8,7 @@ def im2single(I):
     assert I.dtype == "uint8"
     return I.astype("float32") / 255.0
 
-def getWH(shape):
+def get_wh(shape):
     return np.array(shape[1::-1]).astype(float)
 
 def IOU(tl1, br1, tl2, br2):
@@ -60,12 +60,18 @@ def hsv_transform(I, hsv_modifier):
     I = I + hsv_modifier
     return cv2.cvtColor(I, cv2.COLOR_HSV2BGR)
 
-def show(I, wname="Display"):
-    cv2.imshow(wname, I)
-    cv2.moveWindow(wname, 0, 0)
+def show(img):
+    cv2.imshow("img", img)
     key = cv2.waitKey(0) & 0xEFFFFF
-    cv2.destroyWindow(wname)
-    if key == 27:
-        sys.exit()
-    else:
-        return key
+    cv2.destroyWindow("img")
+    return key == 27
+
+def draw_label(img, pts, line_color=(0, 0, 255)):
+    w, h = img.shape[1], img.shape[0]
+    pts = np.asarray(pts)
+    for i in range(4):
+        cv2.line(
+            img,
+            (int(pts[0][i] * w), int(pts[1][i] * h)), 
+            (int(pts[0][(i+1)%4] * w), int(pts[1][(i+1)%4] * h)),
+            line_color, thickness=1)

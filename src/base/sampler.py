@@ -2,9 +2,9 @@ import cv2
 import numpy as np
 import random
 
-from base.utils import im2single, getWH, hsv_transform, IOU_centre_and_dims
+from base.utils import im2single, get_wh, hsv_transform, IOU_centre_and_dims
 from base.label import Label
-from base.projection_utils import perspective_transform, find_T_matrix, getRectPts
+from base.projection_utils import perspective_transform, find_T_matrix, get_rect_ptsh
 
 def labels2output_map(label, lp_pts, dim, stride):
     # 7.75 when dim = 208 and stride = 16
@@ -62,7 +62,7 @@ def augment_sample(I, pts, dim):
         angles = (angles / angles.sum()) * (maxangle / maxangle.sum())
 
     I = im2single(I)
-    iwh = getWH(I.shape)
+    iwh = get_wh(I.shape)
 
     whratio = random.uniform(2., 4.)
     wsiz = random.uniform(dim * .2, dim * 1.)
@@ -71,7 +71,7 @@ def augment_sample(I, pts, dim):
     dx = random.uniform(0., dim - wsiz)
     dy = random.uniform(0., dim - hsiz)
 
-    pph = getRectPts(dx, dy, dx + wsiz, dy + hsiz)
+    pph = get_rect_ptsh(dx, dy, dx + wsiz, dy + hsiz)
     pts = pts * iwh.reshape((2, 1))
     T = find_T_matrix(pts2ptsh(pts), pph)
 

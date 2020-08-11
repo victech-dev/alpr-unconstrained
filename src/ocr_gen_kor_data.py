@@ -8,6 +8,7 @@ import imgaug.augmenters as iaa
 from tqdm import tqdm
 
 from base.label import Label, Shape, write_shapes
+from base.util import show, draw_label
 
 ocr_kor_path = Path('data/ocr-kor')
 
@@ -147,21 +148,6 @@ def multiply_img(char, image, w_ratio, w_ratio_offset):
     #print((w, h, w_ratio, fx))
     return cv2.resize(image, dsize=(0, 0), fx=fx, fy=1., interpolation=cv2.INTER_LINEAR)
 
-def draw_label(img, pts, line_color=(0, 0, 255)):
-    w, h = img.shape[1], img.shape[0]
-    pts = np.asarray(pts)
-    for i in range(4):
-        cv2.line(
-            img,
-            (int(pts[0][i] * w), int(pts[1][i] * h)), 
-            (int(pts[0][(i+1)%4] * w), int(pts[1][(i+1)%4] * h)),
-            line_color, thickness=1)
-
-def show(img):
-    cv2.imshow("img", img)
-    key = cv2.waitKey(0) & 0xEFFFFF
-    cv2.destroyWindow("img")
-    return key == 27
 
 def augement_img(image):
     images = np.expand_dims(image, axis=0)

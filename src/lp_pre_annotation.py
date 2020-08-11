@@ -15,7 +15,7 @@ import darknet.darknet as dn
 
 from base.label import Label, Shape, write_shapes
 from base.utils import image_files_from_folder, im2single, nms
-from base.keras_utils import load_model
+from base.wpod_utils import load_model
 
 net_stride = 2**4
 

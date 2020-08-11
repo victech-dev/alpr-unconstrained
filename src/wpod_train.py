@@ -9,7 +9,7 @@ from tensorflow.keras.callbacks import ModelCheckpoint, TensorBoard, LearningRat
 import cv2
 
 from base.label import read_shapes
-from base.keras_utils import save_model, load_model
+from base.wpod_utils import save_model, load_model
 from base.sampler import augment_sample, labels2output_map
 from base.loss import loss
 
@@ -119,13 +119,3 @@ if __name__ == "__main__":
     ds_train = batch_from_dataset(input_dim, model_stride)
     model.fit(ds_train, steps_per_epoch=STEPS_PER_EPOCH, epochs=EPOCHS, 
         verbose=1, callbacks=callbacks)
-
-
-
-
-
-
-
-
-
-

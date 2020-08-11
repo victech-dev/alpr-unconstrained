@@ -12,15 +12,9 @@ from PIL import Image, ImageDraw, ImageFont
 import darknet.darknet as dn
 
 from base.label import Label, Shape, read_shapes
-from base.utils import image_files_from_folder, im2single, nms
-from base.keras_utils import load_model
+from base.utils import image_files_from_folder, nms, show
+from base.wpod_utils import load_model
 from base.darknet_utils import read_labels, write_labels
-
-def show(img):
-    cv2.imshow("img", img)
-    key = cv2.waitKey(0) & 0xEFFFFF
-    cv2.destroyWindow("img")
-    return key
 
 def split_train_val(path):
     path = Path(path)

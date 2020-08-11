@@ -9,7 +9,7 @@ from os import makedirs
 
 import darknet.darknet as dn
 from base.label import Label, lwrite
-from base.utils import crop_region, image_files_from_folder
+from base.utils import image_files_from_folder
 
 def load_lp_network():
     config = "data/lp/yolo-obj.cfg"
@@ -17,7 +17,7 @@ def load_lp_network():
     meta = "data/lp/obj.data"
     return dn.load_network(config, weight, meta)
 
-# for simple detection
+# detect as a simple bb list
 def detect_lp_bb(net, meta, image, threshold):
     ret, image_wh = dn.detect_cv2image(net, meta, image, thresh=threshold)
     bb_list = []
@@ -28,6 +28,7 @@ def detect_lp_bb(net, meta, image, threshold):
         bb_list.append((l, t, r, b))
     return bb_list
 
+# detect as a label class list
 def detect_lp_labels(net, meta, image, threshold, preserve_ratio=True):
     ret, image_wh = dn.detect_cv2image(net, meta, image, thresh=threshold)
 

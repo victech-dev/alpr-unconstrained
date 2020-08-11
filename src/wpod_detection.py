@@ -1,77 +1,42 @@
 import sys, os
+import time
+from pathlib import Path
+from os.path import isdir
+from os import makedirs
 import cv2
+import numpy as np
 import tensorflow as tf
 from tensorflow import keras
-import numpy as np
-import traceback
-import time
 
-from glob import glob
-from os.path import splitext, basename
-from base.keras_utils import load_model
-from base.utils import im2single
-from base.keras_utils import load_model, detect_lp
+from base.wpod_utils import load_wpod, detect_wpod
 from base.label import Shape, write_shapes
+from base.utils import image_files_from_folder
 
-if __name__ == '__main__':
+def detect_wpod_from_from_folder(input_path, output_path):
+    wpod_net, wpod_net_fn = load_wpod("data/wpod/weights-200.h5")
+    wpod_net.summary()
 
-    try:
-        input_dir = sys.argv[1]
-        output_dir = input_dir
+    image_paths = image_files_from_folder(input_path)
+    image_paths.sort()
 
-        lp_threshold = .1
+    if not isdir(output_path):
+        makedirs(output_path)
 
-        wpod_net_path = sys.argv[2]
-        wpod_net = load_model(wpod_net_path)
-        wpod_net.summary()
+    for _, image_path in enumerate(image_paths):
+        image_path = Path(image_path)
+        image = cv2.imread(str(image_path))
+        threshold = 0.5
+        out_label, out_image, confidence = detect_wpod(wpod_net_fn, image, threshold)
+        print(f"* {str(image_path)} processing. confidence={confidence}")
 
-        # for tf 2.0
-        @tf.function(input_signature=[
-            tf.TensorSpec(shape=(1, None, None, 3), dtype=tf.float32)
-        ])
-        def wpod_net_fn(img):
-            return wpod_net.call(img)
+        cv2.imwrite("%s/%s_unwarp.png" % (output_path, image_path.stem), out_image)
+        write_shapes("%s/%s_unwarp.txt" % (output_path, image_path.stem), [Shape(pts=out_label)])
 
-        # wpod_net_fn = tf.function(wpod_net.call)
-        # wpod_net_fn_concreate = wpod_net_fn.get_concrete_function(
-        # 	(tf.TensorSpec(shape=(1, None, None, 3), dtype=tf.float32, name="img")))
+    print(f"* {len(image_paths)} image processed")
 
-        imgs_paths = glob('%s/*_lp.png' % input_dir)
-        imgs_paths = sorted(imgs_paths)
-
-        print('Searching for license plates using WPOD-NET')
-
-        for i, img_path in enumerate(imgs_paths):
-            bname = splitext(basename(img_path))[0]
-            Ivehicle = cv2.imread(img_path)
-
-            ratio = float(max(Ivehicle.shape[:2])) / min(Ivehicle.shape[:2])
-            side = int(ratio * 288.)
-            bound_dim = min(side + (side % (2**4)), 608)
-
-            t0 = time.time()
-            Llp, LlpImgs, _, t_shape, yr_shape, yr_conf_max = detect_lp(
-                wpod_net_fn, im2single(Ivehicle), bound_dim, 2**4,
-                (240, 80), lp_threshold)
-            t1 = time.time()
-
-            print("**", img_path, ", w=", Ivehicle.shape[1], ", h=", Ivehicle.shape[0],
-                ", Bound dim=", bound_dim, ", ratio=", ratio,
-                ", t=", t1 - t0, ", t.shape=", t_shape,
-                  ", yr.shape=", yr_shape, ", conf.max=", yr_conf_max)
-
-            if len(LlpImgs):
-                Ilp = LlpImgs[0]
-                Ilp = cv2.cvtColor(Ilp, cv2.COLOR_BGR2GRAY)
-                Ilp = cv2.cvtColor(Ilp, cv2.COLOR_GRAY2BGR)
-
-                s = Shape(Llp[0].pts)
-
-                cv2.imwrite('%s/%s_unwarp.png' % (output_dir, bname), Ilp * 255.)
-                write_shapes('%s/%s_unwarp.txt' % (output_dir, bname), [s])
-
-    except:
-        traceback.print_exc()
-        sys.exit(1)
-
-    sys.exit(0)
+if __name__ == "__main__":
+    # input_path = sys.argv[1]
+    # output_path = sys.argv[2]
+    input_path = "_train_wpod/dataset/samples_cropped"
+    output_path = "_train_wpod/dataset/samples_cropped_"
+    detect_wpod_from_from_folder(input_path, output_path)
