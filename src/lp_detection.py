@@ -5,7 +5,7 @@ from os.path import isdir
 from os import makedirs
 
 from base.utils import image_files_from_folder
-from base.lp_utils import load_lp_network, detect_lp_labels
+from base.darknet_utils import load_lp_network, detect_lp_labels
 from base.label import Label, lwrite
 
 def detect_lp_from_folder(input_path, output_path):

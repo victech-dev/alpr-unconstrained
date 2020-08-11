@@ -6,7 +6,7 @@ import shutil
 from datetime import datetime as dt
 
 from base.label import Shape, write_shapes
-from base.lp_utils import load_lp_network, detect_lp_bb
+from base.darknet_utils import load_lp_network, detect_bb
 from base.wpod_utils import load_wpod, detect_wpod
 from base.utils import image_files_from_folder, draw_label, show
 
@@ -78,7 +78,7 @@ def pre_annotate(input_dir, output_dir):
 
         # first, detect bouding-box of lp
         margin = 2**4 # same with net_stride of wpod-net
-        lp_bb_list = detect_lp_bb(lp_net, lp_meta, image, lp_threshold)
+        lp_bb_list = detect_bb(lp_net, lp_meta, image, lp_threshold)
 
         shapes = []
         for lp_bb in lp_bb_list:

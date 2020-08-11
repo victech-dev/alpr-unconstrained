@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 import sys
-
+import shutil
 from glob import glob
 
 def im2single(I):
@@ -75,3 +75,21 @@ def draw_label(img, pts_prop, line_color=(0, 0, 255)):
             (int(pts_prop[0][i] * w), int(pts_prop[1][i] * h)), 
             (int(pts_prop[0][(i+1)%4] * w), int(pts_prop[1][(i+1)%4] * h)),
             line_color, thickness=1)
+
+def split_train_val(path):
+    path = Path(path)
+    train_path = (path / 'train')
+    val_path = (path / 'val')
+    train_path.mkdir(parents=True, exist_ok=True)
+    val_path.mkdir(parents=True, exist_ok=True)
+
+    image_paths = [str(f) for f in path.glob('**/*.jpg')]
+    random.shuffle(image_paths)
+    
+    split_len = int(len(image_paths) * 0.7)
+    for i, image_path in enumerate(image_paths):
+        image_path = Path(image_path)
+        txt_path = image_path.parent / (image_path.stem + '.txt')
+        dst_path = train_path if i < split_len else val_path
+        shutil.move(str(image_path), str(dst_path / image_path.name))
+        shutil.move(str(txt_path), str(dst_path / txt_path.name))

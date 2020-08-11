@@ -9,6 +9,8 @@ from base.label import Label
 from base.utils import get_wh, nms, show, draw_label
 from base.projection_utils import get_rect_ptsh, find_T_matrix
 
+unwarp_margin = 8.
+
 def save_model(model, path, verbose=0):
     path = splitext(path)[0]
     model_json = model.to_json()
@@ -50,7 +52,7 @@ def reconstruct(image, infer_image_wh, net_stride, infer_ret, out_wh, out_margin
         pts_mn_centered = np.array(affine * base) * side
         mn = np.array([float(x) + .5, float(y) + .5])
         pts = pts_mn_centered + mn.reshape((2, 1))
-         # infer_image may have black letterbox
+        # infer_image may have black letterbox
         out_label = pts / (infer_image_wh / net_stride).reshape((2, 1)).astype(np.float32)
 
         # image_to_show = image.copy()
@@ -84,7 +86,9 @@ def detect_lp(wpod_net_fn, image, input_dim, net_stride, out_wh, threshold):
     infer_ret = infer_func(infer_image).numpy()
     infer_ret = np.squeeze(infer_ret) # infer_ret.shape=(h/net_stride, w/net_stride, 8)
 
-    out_label, out_image = reconstruct(image, np.array([w, h]), net_stride, infer_ret, out_wh, 8, threshold)
+    out_label, out_image = reconstruct(
+        image, np.array([w, h]), net_stride, infer_ret,
+        out_wh, unwarp_margin, threshold)
     confidence = np.max(infer_ret[:,:,:1])
     return out_label, out_image, confidence
 
