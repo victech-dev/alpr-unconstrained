@@ -34,7 +34,7 @@ def reconstruct(image, infer_image_wh, net_stride, infer_ret, out_wh, out_margin
 
     out_label = None
     out_image = None
-    if (confidences[y, x] > threshold):
+    if confidences[y, x] > threshold:
         affine = infer_ret[y, x, 2:]
         affine = np.reshape(affine, (2, 3))
         affine[0, 0] = max(affine[0, 0], 0.) # prevent flip

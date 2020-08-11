@@ -15,6 +15,7 @@ from base.utils import image_files_from_folder
 def detect_wpod_from_from_folder(input_path, output_path):
     wpod_net, wpod_net_fn = load_wpod("data/wpod/weights-200.h5")
     wpod_net.summary()
+    wpod_threshold = 0.5
 
     image_paths = image_files_from_folder(input_path)
     image_paths.sort()
@@ -25,8 +26,8 @@ def detect_wpod_from_from_folder(input_path, output_path):
     for _, image_path in enumerate(image_paths):
         image_path = Path(image_path)
         image = cv2.imread(str(image_path))
-        threshold = 0.5
-        out_label, out_image, confidence = detect_wpod(wpod_net_fn, image, threshold)
+        
+        out_label, out_image, confidence = detect_wpod(wpod_net_fn, image, wpod_threshold)
         print(f"* {str(image_path)} processing. confidence={confidence}")
 
         cv2.imwrite("%s/%s_unwarp.png" % (output_path, image_path.stem), out_image)

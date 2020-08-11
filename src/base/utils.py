@@ -64,14 +64,14 @@ def show(img):
     cv2.imshow("img", img)
     key = cv2.waitKey(0) & 0xEFFFFF
     cv2.destroyWindow("img")
-    return key == 27
+    return key
 
-def draw_label(img, pts, line_color=(0, 0, 255)):
+def draw_label(img, pts_prop, line_color=(0, 0, 255)):
     w, h = img.shape[1], img.shape[0]
-    pts = np.asarray(pts)
+    pts_prop = np.asarray(pts_prop)
     for i in range(4):
         cv2.line(
             img,
-            (int(pts[0][i] * w), int(pts[1][i] * h)), 
-            (int(pts[0][(i+1)%4] * w), int(pts[1][(i+1)%4] * h)),
+            (int(pts_prop[0][i] * w), int(pts_prop[1][i] * h)), 
+            (int(pts_prop[0][(i+1)%4] * w), int(pts_prop[1][(i+1)%4] * h)),
             line_color, thickness=1)
