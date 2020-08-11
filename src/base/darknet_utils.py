@@ -43,6 +43,7 @@ def load_ocr_network():
 # detect as a simple bb list
 def detect_bb(net, meta, image, threshold, margin=0, use_cls=False):
     rets, image_wh = dn.detect_cv2image(net, meta, image, thresh=threshold)
+
     bb_list = []
     for ret in rets:
         # <r sample>

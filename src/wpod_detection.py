@@ -13,7 +13,7 @@ from base.label import Shape, write_shapes
 from base.utils import image_files_from_folder
 
 def detect_wpod_from_from_folder(input_path, output_path):
-    wpod_net, wpod_net_fn = load_wpod("data/wpod/weights-200.h5")
+    wpod_net, wpod_net_fn = load_wpod()
     wpod_net.summary()
     wpod_threshold = 0.5
 

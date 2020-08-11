@@ -42,7 +42,7 @@ def pre_annotate(input_dir, output_dir):
     lp_net, lp_meta = load_lp_network()
     lp_threshold = 0.5
 
-    wpod_net, wpod_net_fn = load_wpod("data/wpod/weights-200.h5")
+    wpod_net, wpod_net_fn = load_wpod()
     wpod_net.summary()
     wpod_threshold = 0.5
 

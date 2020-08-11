@@ -102,7 +102,7 @@ def detect_wpod(wpod_net_fn, image, threshold):
     # out_label : np.array, shape=(2, 4)
     return out_label, out_image, confidence
 
-def load_wpod(wpod_net_path):
+def load_wpod(wpod_net_path="data/wpod/weights-200.h5"):
     wpod_net = load_model(wpod_net_path)
 
     # for tf 2.0
