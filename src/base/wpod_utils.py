@@ -4,6 +4,8 @@ import time
 from os.path import splitext
 import tensorflow as tf
 from tensorflow.keras.models import model_from_json
+from tensorflow.python.framework.convert_to_constants import convert_variables_to_constants_v2
+from tensorflow.python.compiler.tensorrt import trt_convert as trt
 
 from base.label import Label
 from base.utils import get_wh, nms, show, draw_label
@@ -30,6 +32,52 @@ def load_model(path, custom_objects={}, verbose=0):
     model.load_weights('%s.h5' % path)
     if verbose: print('Loaded from %s' % path)
     return model
+
+def load_wpod(wpod_net_path="data/wpod/weights-200.h5"):
+    wpod_net = load_model(wpod_net_path)
+
+    # for tf 2.0
+    @tf.function(input_signature=[
+        tf.TensorSpec(shape=(1, None, None, 3), dtype=tf.float32)
+    ])
+    def wpod_net_fn(img):
+        return wpod_net.call(img)
+    
+    return wpod_net, wpod_net_fn
+
+def export_to_frozen_saved_model(wpod_net, path, verbose=0):
+    pred_fn = tf.function(wpod_net.call)
+    pred_fn_concrete = pred_fn.get_concrete_function(
+        tf.TensorSpec(shape=(1, 208, 208, 3), dtype=tf.float32, name="img"))
+
+    print('* save frozen model')
+    pred_fn_frozen = convert_variables_to_constants_v2(pred_fn_concrete)
+    tf.saved_model.save(wpod_net, path, signatures=pred_fn_frozen)
+
+    if verbose: print('Saved to %s' % path)
+
+def export_to_trt_fp16_model(saved_model_path, saved_model_fp16_path, verbose=0):
+    conversion_params = trt.DEFAULT_TRT_CONVERSION_PARAMS
+    conversion_params = conversion_params._replace(precision_mode='FP16')
+    converter = trt.TrtGraphConverterV2(
+        input_saved_model_dir=saved_model_path,
+        conversion_params=conversion_params,
+    )
+    converter.convert()
+    converter.save(saved_model_fp16_path)
+    if verbose: print(f'TRT fp16 model saved to {saved_model_fp16_path}')
+
+def import_saved_model(saved_model_path):
+    wpod_model_loaded = tf.saved_model.load(saved_model_path)
+    print(list(wpod_model_loaded.signatures.keys()))  # ["serving_default"]
+    wpod_model_loaded = wpod_model_loaded.signatures["serving_default"]
+
+    # To see saved signature
+    #saved_model_cli show --dir [DIR]  --tag_set serve --signature_def serving_default
+    def infer(img):
+        output = wpod_model_loaded(img=img)
+        return output['output_0']
+    return tf.function(infer)
 
 def reconstruct(image, infer_image_wh, net_stride, infer_ret, out_wh, out_margin, threshold=.9):
     side = ((208. + 40.) / 2.) / net_stride  # 7.75
@@ -101,15 +149,3 @@ def detect_wpod(wpod_net_fn, image, threshold):
         ocr_input_wh, threshold)
     # out_label : np.array, shape=(2, 4)
     return out_label, out_image, confidence
-
-def load_wpod(wpod_net_path="data/wpod/weights-200.h5"):
-    wpod_net = load_model(wpod_net_path)
-
-    # for tf 2.0
-    @tf.function(input_signature=[
-        tf.TensorSpec(shape=(1, None, None, 3), dtype=tf.float32)
-    ])
-    def wpod_net_fn(img):
-        return wpod_net.call(img)
-    
-    return wpod_net, wpod_net_fn

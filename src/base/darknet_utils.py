@@ -26,18 +26,22 @@ def write_labels(path, labels):
                 _, class_idx, cx, cy, w, h = char_label
                 fp.write(f'{class_idx} {cx} {cy} {w} {h}\n')
 
-def load_lp_network():
-    config = "data/lp/yolo-obj.cfg"
-    weight = "data/lp/yolo-obj_best.weights"
-    meta = "data/lp/obj.data"
+def load_lp_network(config=None, weight=None, meta=None):
+    if config is None:
+        config = "data/lp/yolo-obj.cfg"
+    if weight is None:
+        weight = "data/lp/yolo-obj_best.weights"
+    if meta is None:
+        meta = "data/lp/obj.data"
     return dn.load_network(config, weight, meta)
 
-def load_ocr_network():
-    config = "data/ocr-kor/yolov4-tiny-obj.cfg"
-    weight = "data/ocr-kor/yolov4-tiny-obj_best.weights"
-    # config = "data/ocr-kor/yolo-obj.cfg"
-    # weight = "data/ocr-kor/yolo-obj_best.weights"
-    meta = "data/ocr-kor/obj.data"
+def load_ocr_network(config=None, weight=None, meta=None):
+    if config is None:
+        config = "data/ocr-kor/yolov4-tiny-obj.cfg"
+    if weight is None:
+        weight = "data/ocr-kor/yolov4-tiny-obj_best.weights"
+    if meta is None:
+        meta = "data/ocr-kor/obj.data"
     return dn.load_network(config, weight, meta)
 
 # detect as a simple bb list
