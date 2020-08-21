@@ -7,7 +7,7 @@ from pathlib import Path
 from base.label import Shape, write_shapes
 from base.darknet_utils import load_lp_network, load_ocr_network, detect_bb
 from base.wpod_utils import load_wpod, detect_wpod, import_saved_model
-from base.utils import image_files_from_folder, draw_label, show
+from base.utils import image_files_from_folder, draw_label, draw_text, draw_bb_from_ltrb, get_precent_color, show
 
 lp_net, lp_meta = None, None
 lp_threshold = 0.5
@@ -16,7 +16,7 @@ wpod_net, wpod_net_fn = None, None
 wpod_threshold = 0.5
 
 ocr_net, orc_meta = None, None
-ocr_threshold = 0.5
+ocr_threshold = 0.3
 
 def prepare_networks(wpod_saved_model_path=None):
     global lp_net, lp_meta, wpod_net, wpod_net_fn, ocr_net, orc_meta
@@ -43,7 +43,7 @@ def detect(image):
 
     e0 = time.time() - t0
 
-    chars_list = []
+    results = []
     for lp_bb in lp_bb_list:
         t0 = time.time()
 
@@ -54,22 +54,21 @@ def detect(image):
 
         # get proportional points from wpod
         image_lp = image[t:b, l:r, :]
-        _, wpod_image, _ = detect_wpod(wpod_net_fn, image_lp, wpod_threshold)
+        _, image_lp_unwarp, _ = detect_wpod(wpod_net_fn, image_lp, wpod_threshold)
 
         e1 = e1 + (time.time() - t0)
 
         t0 = time.time()
 
         # detect char using ocr
-        char_bb_list = detect_bb(ocr_net, orc_meta, wpod_image, ocr_threshold, use_cls=True)
-        char_bb_list.sort(key=lambda v: (v[3] + v[5]) * 0.5) # sort by cx
-        chars_list.append("".join([v[0] for v in char_bb_list]))
-
+        char_bb_list = detect_bb(ocr_net, orc_meta, image_lp_unwarp, ocr_threshold, use_class=True, nms=0.7)
+        lp_txt = "".join([v[0] for v in char_bb_list])
+        
         e2 = e2 + (time.time() - t0)
 
-    print(f"e0={e0}, e1={e1}, e2={e2}")
+        results.append((lp_bb, lp_txt, char_bb_list, image_lp_unwarp))
 
-    return chars_list
+    return results, e0, e1, e2
 
 def test_detect(input_dir):
     image_paths = image_files_from_folder(input_dir)
@@ -80,11 +79,36 @@ def test_detect(input_dir):
         image = cv2.imread(str(image_path))
 
         t0 = time.time()
-        chars_list = detect(image)
+        detect_results, e0, e1, e2 = detect(image)
         t1 = time.time()
 
-        chars_all = " / ".join(chars_list)
-        print(f"{image_path.name} : chars='{chars_all}, elap={t1-t0}")
+        show_ratio = 0.5
+        image = cv2.resize(image, dsize=(0, 0), fx=show_ratio, fy=show_ratio, interpolation=cv2.INTER_LINEAR)
+
+        # show result in text and image
+        print(f"{image_path.name} : detect {len(detect_results)} plates. elap={t1-t0} ({e0} / {e1} / {e2})")
+        for ret in detect_results:
+            lp_bb, lp_txt, char_bb_list, _ = ret
+
+            print(f"  plate={lp_txt}")
+            for char_bb in char_bb_list:
+                print(f"    {char_bb}")
+            l, t, r, b = lp_bb
+            draw_bb_from_ltrb(image, l * show_ratio, t * show_ratio, r * show_ratio, b * show_ratio)
+
+        draw_w = 10
+        for ret in detect_results:
+            _, lp_txt, char_bb_list, image_lp_unwarp = ret
+
+            for char_bb in char_bb_list:
+                l, t, r, b = char_bb[3:7]
+                draw_bb_from_ltrb(image_lp_unwarp, l, t, r, b, line_color=get_precent_color(char_bb[2]))
+
+            unwarp_w, unwarp_h = (image_lp_unwarp.shape[1], image_lp_unwarp.shape[0])
+            image[10:10+unwarp_h, draw_w:draw_w+unwarp_w, :] = image_lp_unwarp
+            image = draw_text(image, lp_txt, (draw_w, unwarp_h + 10))
+            draw_w = draw_w + unwarp_w + 10
+
         key = show(image)
         if key == 27:
             break
@@ -93,3 +117,5 @@ if __name__ == "__main__":
     #prepare_networks()
     prepare_networks("data/wpod/frozen_model_fp16")
     test_detect("_train_wpod/dataset/data_kor_v1_done")
+    #test_detect("_0821_site")
+     

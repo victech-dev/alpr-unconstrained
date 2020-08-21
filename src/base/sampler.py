@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import random
 
-from base.utils import im2single, get_wh, hsv_transform, IOU_centre_and_dims
+from base.utils import im2single, get_wh, hsv_transform, iou_centre_and_dims
 from base.label import Label
 from base.projection_utils import perspective_transform, find_T_matrix, get_rect_ptsh
 
@@ -21,7 +21,7 @@ def labels2output_map(label, lp_pts, dim, stride):
     for x in range(tlx, brx):
         for y in range(tly, bry):
             mn = np.array([float(x) + .5, float(y) + .5])
-            iou = IOU_centre_and_dims(mn / MN, label.wh(), label.cc(), label.wh())
+            iou = iou_centre_and_dims(mn / MN, label.wh(), label.cc(), label.wh())
 
             if iou > .5:
                 p_WH = lp_pts * WH.reshape((2, 1))

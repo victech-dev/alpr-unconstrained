@@ -5,6 +5,7 @@ import numpy as np
 
 import darknet.darknet as dn
 from base.label import Label, lwrite
+from base.utils import iou_ltrb
 
 def read_labels(path):
     path = Path(path)
@@ -44,8 +45,23 @@ def load_ocr_network(config=None, weight=None, meta=None):
         meta = "data/ocr-kor/obj.data"
     return dn.load_network(config, weight, meta)
 
+def nms_lp(bb_list, threshold):
+    bb_list.sort(key=lambda v: v[2], reverse=True) # sort by prob
+    valid = [1] * len(bb_list)
+    for i in range(len(bb_list) - 1):
+        if valid[i] == 0:
+            continue
+        for j in range(i+1, len(bb_list)):
+            if valid[j] > 0:
+                l1, t1, r1, b1 = bb_list[i][3:7]
+                l2, t2, r2, b2 = bb_list[j][3:7]
+                iou = iou_ltrb(l1, t1, r1, b1, l2, t2, r2, b2)
+                if iou > threshold:
+                    valid[j] = 0
+    return [v[1] for v in list(zip(valid, bb_list)) if v[0] > 0]
+
 # detect as a simple bb list
-def detect_bb(net, meta, image, threshold, margin=0, use_cls=False):
+def detect_bb(net, meta, image, threshold, margin=0, use_class=False, nms=0.5):
     rets, image_wh = dn.detect_cv2image(net, meta, image, thresh=threshold)
 
     bb_list = []
@@ -56,10 +72,16 @@ def detect_bb(net, meta, image, threshold, margin=0, use_cls=False):
         cx, cy, w, h = ret[3][:4]
         l, r, t, b = cx - w * 0.5 - margin, cx + w * 0.5 + margin, cy - h * 0.5 - margin, cy + h * 0.5 + margin
         l, r, t, b = max(0, l), min(image_wh[0], r), max(0, t), min(image_wh[1], b)
-        if use_cls:
-            bb_list.append((ret[0].decode('utf-8'), ret[1], ret[2], l, t, r, b))
-        else:
-            bb_list.append((l, t, r, b))
+        bb_list.append((ret[0].decode('utf-8'), ret[1], ret[2], l, t, r, b))
+
+    if nms:
+        bb_list = nms_lp(bb_list, nms)
+
+    bb_list.sort(key=lambda v: (v[3] + v[5]) * 0.5) # sort by cx
+    if not use_class:
+        # use only (l,t,r,b)
+        bb_list = [(v[3],v[4],v[5],v[6]) for v in bb_list]
+
     return bb_list
 
 # detect as a label class list

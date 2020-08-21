@@ -83,7 +83,6 @@ def lread(file_path, label_type=Label):
 
     return objs
 
-
 def lwrite(file_path, labels, write_probs=True):
     with open(file_path, 'w') as fd:
         for l in labels:
