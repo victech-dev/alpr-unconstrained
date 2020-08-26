@@ -17,7 +17,7 @@ import postprocess
 ocr_kor_path = Path('data/ocr-kor')
 REAL_REGION_PROB = 1.0
 MIN_COLOR_DIFF = 20 # 0~100
-IMSHOW = True
+IMSHOW = False
 
 random_bg_img_paths = [str(f) for f in (ocr_kor_path / 'random_bg').glob('**/*.jpg')]
 
@@ -195,8 +195,12 @@ def random_crop_pad(image, psoi):
         b2 = int(np.ceil(bbu.y2 + vdice.draw_sample() * bbu.height))
         psoi2 = psoi.copy().shift(-l2, -t2)
         shape2 = (b2 - t2, r2 - l2)
-        if max([p.compute_out_of_image_fraction(shape2) for p in psoi2]) < 0.1:
-            break
+        try:
+            if max([p.compute_out_of_image_fraction(shape2) for p in psoi2]) < 0.1:
+                break
+        except:
+            # something wrong happens during 'compute_out_of_image_fraction', try again
+            continue
     return iaa.CropAndPad(
         px=(-t2, r2-image.shape[1], b2-image.shape[0], -l2),
         keep_size=False)(image=image, polygons=psoi)
@@ -261,6 +265,6 @@ def gen_dataset(base_path, cnt=20):
         gen_data(base_path, idx)
 
 if __name__ == "__main__":
-    gen_dataset('tmp/sample/', 32)
-    # gen_dataset('_train_ocr/dataset/synth/train/', 12000)
+    # gen_dataset('tmp/sample/', 32)
+    gen_dataset('_train_ocr/dataset/synth/train/', 12000)
     # gen_dataset('_train_ocr/dataset/synth/val/', 3000)
