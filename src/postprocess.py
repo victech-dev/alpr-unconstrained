@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 from imgaug.augmentables.bbs import BoundingBox
 from base.label import Label
-from base.utils import IOU_labels
+from base.utils import iou_labels
 
 def _unravel(labels):
     ys = np.float32([l.cc()[1] for l in labels])
@@ -16,7 +16,7 @@ def _unravel(labels):
     lt1, rb1 = np.min([l.tl() for l in g1], 0), np.max([l.br() for l in g1], 0)
     bb0 = Label(-1, np.array([0, lt0[1]]), np.array([1, rb0[1]]))
     bb1 = Label(-1, np.array([0, lt1[1]]), np.array([1, rb1[1]]))
-    if IOU_labels(bb0, bb1) > 0.33:
+    if iou_labels(bb0, bb1) > 0.33:
         return 1, sorted(labels, key=lambda l: l.cc()[0])
     else:
         if bb0.cc()[1] > bb1.cc()[1]:
