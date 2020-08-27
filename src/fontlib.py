@@ -9,6 +9,7 @@ from colormath.color_conversions import convert_color
 from colormath.color_diff import delta_e_cie2000
 
 import imgaug.augmenters as iaa
+from imgaug import parameters as iap
 from imgaug.augmenters.blend import blend_alpha
 from imgaug.augmentables.bbs import BoundingBox, BoundingBoxesOnImage
 
@@ -157,23 +158,23 @@ def _tokenize_text(text, fonts):
     return re.findall(f'[{chars}]|_+', text)
 
 def _draw_text(text, sz, fonts, is_horz):
-    dice_offset = lambda v: np.random.randint(-v,  v + 1)
     rect_list = []
     pos = 0
-    offset = round(0.08 * sz)
+    sz_dice = iap.Discretize(iap.Multiply(iap.TruncatedNormal(0.0, 0.07, -0.1, 0.1), sz))
+    pos_dice = iap.Discretize(iap.Multiply(iap.TruncatedNormal(0.15, 0.07, 0.05, 0.25), sz))
     for token in _tokenize_text(text, fonts):
         if token.startswith('_'): # spacing
             spacing = np.random.randint(0, len(token) * round(sz * 0.5))
             pos += spacing
             continue
-        rect = BoundingBox(0, 0, sz + dice_offset(offset), sz + dice_offset(offset), label=token)
+        rect = BoundingBox(0, 0, sz, sz, label=token)
         rect.shift_(pos if is_horz else 0, 0 if is_horz else pos)
         if is_horz:
-            rect.shift_(0, dice_offset(offset)//2)
-            pos = rect.x2_int + (offset + dice_offset(offset))
+            rect.extend_(0, sz_dice.draw_sample() // 2, sz_dice.draw_sample(), sz_dice.draw_sample() // 2, 0)
+            pos = rect.x2_int + pos_dice.draw_sample()
         else:
-            rect.shift_(dice_offset(offset)//2, 0)
-            pos = rect.y2_int + (offset + dice_offset(offset))
+            rect.extend_(0, 0, sz_dice.draw_sample() // 2, sz_dice.draw_sample(), sz_dice.draw_sample() // 2)
+            pos = rect.y2_int + pos_dice.draw_sample()
         rect_list.append(rect)
 
     layout = _validate_layout(rect_list)

@@ -80,6 +80,23 @@ class ShadowMaskGen(iaa.IBatchwiseMaskGenerator):
         add = self.add.draw_samples(1, random_state=random_state)
         return np.clip(gray * mul + add, 0, 1)
 
+class PerspectiveTransformSafe(iaa.PerspectiveTransform):
+    # iaa.PerspectiveTransform of ver 0.4.0 accepts only scale parameter 
+    # for normal distribution of jitter, and this may cause too warpy transform.
+    # Here, we just wrap the original class and override/inject jitter distribution directly.
+    def __init__(self, *args, **kwargs):
+        super(PerspectiveTransformSafe, self).__init__((0, 1), *args, **kwargs)
+        self.jitter = iap.TruncatedNormal(0, 0.06, -0.1, 0.1)
+    # iaa.PerspectiveTransform._order_points has a strange logic to determine 
+    # corners' ordering and it turns out that the returned ordering could be wrong, 
+    # so we just return a copy of the original pts since we apply the jitter to conserve the ordering
+    @classmethod
+    def _order_points(cls, pts):
+        assert pts.shape == (4, 2)
+        pts_ordered = np.zeros((4, 2), dtype=np.float32)
+        pts_ordered[:] = pts
+        return pts_ordered
+
 def augement_img(image, polygon):
     aug = iaa.Sequential([
         # background overlay
@@ -186,21 +203,17 @@ def random_template():
 
 def random_crop_pad(image, psoi):
     dice = lambda low, high: iap.TruncatedNormal((low + high) / 2, (high - low) / 3, low, high)
-    hdice, vdice = dice(-0.1, 0.2), dice(-0.1, 0.3)
+    hdice, vdice = dice(-0.1, 0.3), dice(-0.1, 0.4)
     bbu = BoundingBox.from_point_soup(psoi.to_xy_array())
     while True:
-        l2 = int(np.floor(bbu.x1 - hdice.draw_sample() * bbu.width))
-        t2 = int(np.floor(bbu.y1 - vdice.draw_sample() * bbu.height))
-        r2 = int(np.ceil(bbu.x2 + hdice.draw_sample() * bbu.width))
-        b2 = int(np.ceil(bbu.y2 + vdice.draw_sample() * bbu.height))
+        l2 = int(round(bbu.x1 - hdice.draw_sample() * bbu.width))
+        t2 = int(round(bbu.y1 - vdice.draw_sample() * bbu.height))
+        r2 = int(round(bbu.x2 + hdice.draw_sample() * bbu.width))
+        b2 = int(round(bbu.y2 + vdice.draw_sample() * bbu.height))
         psoi2 = psoi.copy().shift(-l2, -t2)
         shape2 = (b2 - t2, r2 - l2)
-        try:
-            if max([p.compute_out_of_image_fraction(shape2) for p in psoi2]) < 0.1:
-                break
-        except:
-            # something wrong happens during 'compute_out_of_image_fraction', try again
-            continue
+        if max([p.compute_out_of_image_fraction(shape2) for p in psoi2]) < 0.1:
+            break
     return iaa.CropAndPad(
         px=(-t2, r2-image.shape[1], b2-image.shape[0], -l2),
         keep_size=False)(image=image, polygons=psoi)
@@ -220,8 +233,7 @@ def gen_lp_image(template, idx=0):
     # handle affine/perspective transform with gray image first
     image, psoi = iaa.Sequential([
         iaa.Rotate(iap.TruncatedNormal(0, 5, -10, 10), fit_output=True),
-        iaa.Sometimes(0.3, 
-            iaa.PerspectiveTransform(scale=(0.0, 0.1), keep_size=False, fit_output=True))
+        iaa.Sometimes(0.3, PerspectiveTransformSafe(keep_size=False, fit_output=True))
     ])(image=image, polygons=psoi)
     image, psoi = random_crop_pad(image, psoi)
     image, psoi = iaa.Resize(dict(width=W, height=H))(image=image, polygons=psoi)
@@ -267,4 +279,4 @@ def gen_dataset(base_path, cnt=20):
 if __name__ == "__main__":
     # gen_dataset('tmp/sample/', 32)
     gen_dataset('_train_ocr/dataset/synth/train/', 12000)
-    # gen_dataset('_train_ocr/dataset/synth/val/', 3000)
+    gen_dataset('_train_ocr/dataset/synth/val/', 3000)
